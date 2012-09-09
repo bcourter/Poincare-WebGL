@@ -35,7 +35,7 @@ function region(p, q) {
 
 	this.points[12] = complex.prototype.add(this.p0, complex.prototype.add(this.p1, this.p2).scale(1 / 2)).scale(1 / 2);
 	this.points[13] = complex.prototype.add(this.p2, complex.prototype.add(this.p0, this.p1).scale(1 / 2)).scale(1 / 2);
-	this.points[14] = complex.prototype.add(this.p1, complex.prototype.add(this.p2, center).scale(1 / 2)).scale(1 / 2);
+	this.points[14] = complex.prototype.add(this.p1, complex.prototype.add(this.p2, this.p0).scale(1 / 2)).scale(1 / 2);
 }
 
 
@@ -249,7 +249,9 @@ face.prototype.coords = function() {
 	
 	var n = 0;
 	var size = 20;
-    var cubeVertexIndices = [
+    var cubeVertexIndices = [];
+    
+    cubeVertexIndices.push([
         centerI, 
         n * size + spinesI[2],
         n * size + dualEdgesI[0],
@@ -259,42 +261,35 @@ face.prototype.coords = function() {
         n * size + dualEdgesI[2],
         n * size + halfEdgesI[0], 
         n * size + edgeCentersI        
-    ];
+    ]);
+    
+    cubeVertexIndices.push([
+        n * size + spinesI[2],
+        n * size + spinesI[1],
+        n * size + interiorsI[0],
+        n * size + interiorsI[2],
+        n * size + interiorsI[1],
+        n * size + halfEdgesI[1],
+        n * size + halfEdgesI[0]       
+    ]);
+    
+    cubeVertexIndices.push([
+        n * size + spinesI[1],
+        n * size + spinesI[0],
+        n * size + interiorsI[2],
+        n * size + halfEdgesI[2], 
+        n * size + halfEdgesI[1]      
+    ]);
+
+    cubeVertexIndices.push([
+        n * size + spinesI[0],
+        n * size + verticesI,
+        n * size + halfEdgesI[2]   
+    ]);
     
     return [vertices,  textureCoords, cubeVertexIndices]
 };
-	
-	/*face.prototype.coords = function(color, texture, textureBack, isInverting, isInverted, texOffset) {
-
-				GL.Begin(BeginMode.TriangleStrip);
-				GLVertex(center, 0, texOffset);
-				GLVertex(spinePoints[i][2], 11, texOffset);
-				GLVertex(dualEdgePoints[i][0], 1, texOffset);
-				GLVertex(interiorPoints[i][0], 12, texOffset);
-				GLVertex(dualEdgePoints[i][1], 2, texOffset);
-				GLVertex(interiorPoints[i][1], 13, texOffset);
-				GLVertex(dualEdgePoints[i][2], 3, texOffset);
-				GLVertex(halfEdgePoints[i][0], 5, texOffset);
-				GLVertex(edgeCenters[i], 4, texOffset);
-				GL.End();
-
-				GL.Begin(BeginMode.TriangleStrip);
-				GLVertex(spinePoints[i][2], 11, texOffset);
-				GLVertex(spinePoints[i][1], 10, texOffset);
-				GLVertex(interiorPoints[i][0], 12, texOffset);
-				GLVertex(interiorPoints[i][2], 14, texOffset);
-				GLVertex(interiorPoints[i][1], 13, texOffset);
-				GLVertex(halfEdgePoints[i][1], 6, texOffset);
-				GLVertex(halfEdgePoints[i][0], 5, texOffset);
-				GL.End();
-
-				GL.Begin(BeginMode.TriangleStrip);
-				GLVertex(spinePoints[i][1], 10, texOffset);
-				GLVertex(spinePoints[i][0], 9, texOffset);
-				GLVertex(interiorPoints[i][2], 14, texOffset);
-				GLVertex(halfEdgePoints[i][2], 7, texOffset);
-				GLVertex(halfEdgePoints[i][1], 6, texOffset);
-				GL.End();
+	/*
 
 				GL.Begin(BeginMode.TriangleStrip);
 				GLVertex(spinePoints[i][0], 9, texOffset);
