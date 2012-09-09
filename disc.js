@@ -247,112 +247,88 @@ face.prototype.coords = function() {
 	var spinesI = [11, 12, 13];
 	var interiorsI = [14, 15, 16, 17, 18, 19];
 	
-	var n = 0;
 	var size = 20;
     var cubeVertexIndices = [];
     
-    cubeVertexIndices.push([
-        centerI, 
-        n * size + spinesI[2],
-        n * size + dualEdgesI[0],
-        n * size + interiorsI[0],
-        n * size + dualEdgesI[1],
-        n * size + interiorsI[1],
-        n * size + dualEdgesI[2],
-        n * size + halfEdgesI[0], 
-        n * size + edgeCentersI        
-    ]);
-    
-    cubeVertexIndices.push([
-        n * size + spinesI[2],
-        n * size + spinesI[1],
-        n * size + interiorsI[0],
-        n * size + interiorsI[2],
-        n * size + interiorsI[1],
-        n * size + halfEdgesI[1],
-        n * size + halfEdgesI[0]       
-    ]);
-    
-    cubeVertexIndices.push([
-        n * size + spinesI[1],
-        n * size + spinesI[0],
-        n * size + interiorsI[2],
-        n * size + halfEdgesI[2], 
-        n * size + halfEdgesI[1]      
-    ]);
-
-    cubeVertexIndices.push([
-        n * size + spinesI[0],
-        n * size + verticesI,
-        n * size + halfEdgesI[2]   
-    ]);
+    for (n = 0; n < p; n++){
+	    cubeVertexIndices.push([
+	        centerI, 
+	        n * size + spinesI[2],
+	        n * size + dualEdgesI[0],
+	        n * size + interiorsI[0],
+	        n * size + dualEdgesI[1],
+	        n * size + interiorsI[1],
+	        n * size + dualEdgesI[2],
+	        n * size + halfEdgesI[0], 
+	        n * size + edgeCentersI        
+	    ]);
+	    
+	    cubeVertexIndices.push([
+	        n * size + spinesI[2],
+	        n * size + spinesI[1],
+	        n * size + interiorsI[0],
+	        n * size + interiorsI[2],
+	        n * size + interiorsI[1],
+	        n * size + halfEdgesI[1],
+	        n * size + halfEdgesI[0]       
+	    ]);
+	    
+	    cubeVertexIndices.push([
+	        n * size + spinesI[1],
+	        n * size + spinesI[0],
+	        n * size + interiorsI[2],
+	        n * size + halfEdgesI[2], 
+	        n * size + halfEdgesI[1]      
+	    ]);
+	
+	    cubeVertexIndices.push([
+	        n * size + spinesI[0],
+	        n * size + verticesI,
+	        n * size + halfEdgesI[2]   
+	    ]);
+	    
+	    var nn = (n + p - 1) % p;
+	    
+	    cubeVertexIndices.push([
+	        centerI, 
+	        nn * size + spinesI[2],
+	        n * size + dualEdgesI[0],
+	        n * size + interiorsI[3],
+	        n * size + dualEdgesI[1],
+	        n * size + interiorsI[4],
+	        n * size + dualEdgesI[2],
+	        n * size + halfEdgesI[3], 
+	        n * size + edgeCentersI        
+	    ]);
+	    
+	    cubeVertexIndices.push([
+	        nn * size + spinesI[2],
+	        nn * size + spinesI[1],
+	        n * size + interiorsI[3],
+	        n * size + interiorsI[5],
+	        n * size + interiorsI[4],
+	        n * size + halfEdgesI[4],
+	        n * size + halfEdgesI[3]     
+	    ]);
+	    
+	    cubeVertexIndices.push([
+	        nn * size + spinesI[1],
+	        nn * size + spinesI[0],
+	        n * size + interiorsI[5],
+	        n * size + halfEdgesI[5],
+	        n * size + halfEdgesI[4]     
+	    ]);
+	    
+	    cubeVertexIndices.push([
+	        nn * size + spinesI[0],
+	        nn * size + verticesI,
+	        n * size + halfEdgesI[5]   
+	    ]);
+    }
     
     return [vertices,  textureCoords, cubeVertexIndices]
 };
-	/*
 
-				GL.Begin(BeginMode.TriangleStrip);
-				GLVertex(spinePoints[i][0], 9, texOffset);
-				GLVertex(vertices[i], 8, texOffset);
-				GprototypeLVertex(halfEdgePoints[i][2], 7, texOffset);
-				GL.End();
-
-				if (isInverting) {
-					if (isInverted ^ isFlipped) 
-						GL.LogicOp(LogicOp.Copy);
-					else
-						GL.LogicOp(LogicOp.CopyInverted);
-				}
-
-				int ii = (i + p - 1) % p;
-				GL.Begin(BeginMode.TriangleStrip);
-				GLVertex(center, 0, texOffset);
-				GLVertex(spinePoints[ii][2], 11, texOffset);
-				GLVertex(dualEdgePoints[i][0], 1, texOffset);
-				GLVertex(interiorPoints[i + p][0], 12, texOffset);
-				GLVertex(dualEdgePoints[i][1], 2, texOffset);
-				GLVertex(interiorPoints[i + p][1], 13, texOffset);
-				GLVertex(dualEdgePoints[i][2], 3, texOffset);
-				GLVertex(halfEdgePoints[i + p][0], 5, texOffset);
-				GLVertex(edgeCenters[i], 4, texOffset);
-				GL.End();
-
-				GL.Begin(BeginMode.TriangleStrip);
-				GLVertex(spinePoints[ii][2], 11, texOffset);
-				GLVertex(spinePoints[ii][1], 10, texOffset);
-				GLVertex(interiorPoints[i + p][0], 12, texOffset);
-				GLVertex(interiorPoints[i + p][2], 14, texOffset);
-				GLVertex(interiorPoints[i + p][1], 13, texOffset);
-				GLVertex(halfEdgePoints[i + p][1], 6, texOffset);
-				GLVertex(halfEdgePoints[i + p][0], 5, texOffset);
-				GL.End();
-
-				GL.Begin(BeginMode.TriangleStrip);
-				GLVertex(spinePoints[ii][1], 10, texOffset);
-				GLVertex(spinePoints[ii][0], 9, texOffset);
-				GLVertex(interiorPoints[i + p][2], 14, texOffset);
-				GLVertex(halfEdgePoints[i + p][2], 7, texOffset);
-				GLVertex(halfEdgePoints[i + p][1], 6, texOffset);
-				GL.End();;
-
-				GL.Begin(BeginMode.TriangleStrip);
-				GLVertex(spinePoints[ii][0], 9, texOffset);
-				GLVertex(vertices[ii], 8, texOffset);
-				GLVertex(halfEdgePoints[i + p][2], 7, texOffset);
-				GL.End();
-			}
-
-			GL.Disable(EnableCap.Texture2D);
-			
-//			GL.LogicOp(LogicOp.Invert);
-//			foreach (Edge edge in edges) 
-//				edge.DrawGL(color);
-			
-			GL.Disable(EnableCap.ColorLogicOp);
-			GL.Disable(EnableCap.Blend);
-			
-		};
-*/
 
 function edge(face, circline, start, end) {
 	this.face = face;
