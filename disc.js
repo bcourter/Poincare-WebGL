@@ -13,6 +13,7 @@ function region(p, q) {
 	var center = this.c.center();
 
 	var polar = complex.prototype.createPolar(this.r, Math.PI - this.phi)
+	this.p0 = complex.zero;
 	this.p1 = complex.prototype.add(new complex([this.d, 0]), polar);
 	this.p2 = new complex([this.d - this.r, 0]);
 
@@ -26,15 +27,14 @@ function region(p, q) {
 	var count = 4;
 	for ( i = 0; i < count; i++) {
 		var t = i / count;
-		var pp1 = center.scale(1 - t);
-		var pp2 = this.p2.scale(t);
-		this.points[i] = complex.prototype.add(pp1, pp2);
+
+		this.points[i] = this.p2.scale(t);
 		this.points[i + count] = complex.prototype.add(new complex([this.d, 0]), complex.prototype.createPolar(this.r, Math.PI - this.phi * t));
 		this.points[i + 2 * count] = this.p1.scale(1 - t);
 	}
 
-	this.points[12] = complex.prototype.add(center, complex.prototype.add(this.p1, this.p2).scale(1 / 2)).scale(1 / 2);
-	this.points[13] = complex.prototype.add(this.p2, complex.prototype.add(center, this.p1).scale(1 / 2)).scale(1 / 2);
+	this.points[12] = complex.prototype.add(this.p0, complex.prototype.add(this.p1, this.p2).scale(1 / 2)).scale(1 / 2);
+	this.points[13] = complex.prototype.add(this.p2, complex.prototype.add(this.p0, this.p1).scale(1 / 2)).scale(1 / 2);
 	this.points[14] = complex.prototype.add(this.p1, complex.prototype.add(this.p2, center).scale(1 / 2)).scale(1 / 2);
 }
 
@@ -64,7 +64,6 @@ function face(region, center, vertices, edgeCenters, halfEdges, spines, dualEdge
 	}
 }
 
-
 face.prototype.create = function(region) {
 	var region = region;
 	var center = complex.zero;
@@ -75,6 +74,7 @@ face.prototype.create = function(region) {
 	var midvertex = region.p1;
 
 	var mesh = region.points;
+	var meshConjugate = complex.prototype.conjugateArray(mesh)
 	var meshCount = 3;
 	var vertices = [p];
 	var edgeCenters = [p];
@@ -126,21 +126,26 @@ face.prototype.create = function(region) {
 	return new face(region, center, vertices, edgeCenters, halfEdgePoints, spinePoints, dualEdgePoints, interiorPoints, isFlipped);
 };
 
+
+face.prototype.createWithEdges = function(region, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, isFlipped) {
+	var f = new face(region, center, vertices, edgeCenters, halfEdgePoints, spinePoints, dualEdgePoints, interiorPoints, isFlipped);
+	f.edges = edges;
+}
+
 face.prototype.transform = function(m) { int
 	p = this.region.p;
 	var edges = [p];
 
-	center = face.center().transform(m);
+	center = face.cinteriorsIenter().transform(m);
 	vertices = complex.prototype.transformArray(face.vertices, m);
 	edgeCenters = complex.prototype.transformArray(face.edgeCenters, m);
 
-	halfEdges = new complex[2 * p];
-	spines = new complex[p];
-	dualEdges = new complex[p];
-	interiors = new complex[2 * p];
+	halfEdges = [2 * p];
+	spines = [p];
+	dualEdges = [p];
+	interiors = [2 * p];
 
 	for ( i = 0; i < p; i++) {
-		edges[i] = complex.prototype.transformArray(face.edges[i], m);
 		halfEdges[i] = complex.prototype.transformArray(face.halfEdgePoints[i], m);
 		halfEdges[i + p] = complex.prototype.transformArray(face.halfEdgePoints[i + p], m);
 		spines[i] = complex.prototype.transformArray(face.spinePoints[i], m);
@@ -149,12 +154,12 @@ face.prototype.transform = function(m) { int
 		interiors[i + p] = complex.prototype.transformArray(face.interiorPoints[i + p], m);
 	}
 
-	return new face(this.region, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, this.isFlipped);
+	return face.prototype.createWithEdges(this.region, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, this.isFlipped);
 }
 
 face.prototype.conjugate = function(m) { int
 	p = this.region.p;
-	var edges = [p];
+	var edges = [p]; 
 
 	center = face.center().conjugate(m);
 	vertices = complex.prototype.conjugateArray(face.vertices);
@@ -175,67 +180,91 @@ face.prototype.conjugate = function(m) { int
 		interiors[i + p] = complex.prototype.conjugateArray(face.interiorPoints[i + p]);
 	}
 
-	return new face(this.region, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, !this.isFlipped);
+	return face.prototype.createWithEdges(this.region, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, this.isFlipped);
 };
 
 face.prototype.coords = function() {
 	var p = this.region.p;
-	var halfEdgesOffset = 0;
-	var spinesOffset = halfEdgesOffset + 2 * p;
-	var dualEdgesOffset = spinesOffset + p;
-	var interiorsOffset = dualEdgesOffset + p;
-	var length = interiorsOffset + 2 * p;
-	
+
 	var vertices = [];
 	var textureCoords = [];
-	for (i = 0 ; i < p; i ++){
+	for (i = 0; i < p; i ++){
 		vertices = vertices.concat(
-			this.halfEdges[i].data, 
-			this.halfEdges[i + p].data, 
-			this.spines[i].data, 
-			this.dualEdges[i].data,
-			this.interiors[i].data ,
-			this.interiors[i + p].data
+			this.dualEdges[i][0].data[0],	this.dualEdges[i][0].data[1],
+			this.dualEdges[i][1].data[0],	this.dualEdges[i][1].data[1],
+			this.dualEdges[i][2].data[0],	this.dualEdges[i][2].data[1],
+			this.edgeCenters[i].data[0],	this.edgeCenters[i].data[1],
+			this.halfEdges[i][0].data[0],	this.halfEdges[i][0].data[1],
+			this.halfEdges[i][1].data[0],	this.halfEdges[i][1].data[1],
+			this.halfEdges[i][2].data[0],	this.halfEdges[i][2].data[1],
+			this.halfEdges[i + p][0].data[0],	this.halfEdges[i + p][0].data[1],
+			this.halfEdges[i + p][1].data[0],	this.halfEdges[i + p][1].data[1],
+			this.halfEdges[i + p][2].data[0],	this.halfEdges[i + p][2].data[1],
+			this.vertices[i].data[0],	this.vertices[i].data[1],
+			this.spines[i][0].data[0],	this.spines[i][0].data[1],
+			this.spines[i][1].data[0],	this.spines[i][1].data[1],
+			this.spines[i][2].data[0],	this.spines[i][2].data[1],
+			this.interiors[i][0].data[0],	this.interiors[i][0].data[1],
+			this.interiors[i][1].data[0],	this.interiors[i][1].data[1],
+			this.interiors[i][2].data[0],	this.interiors[i][2].data[1],
+			this.interiors[i + p][0].data[0],	this.interiors[i + p][0].data[1],
+			this.interiors[i + p][1].data[0],	this.interiors[i + p][1].data[1],
+			this.interiors[i + p][2].data[0], 	this.interiors[i + p][2].data[1]
+		); 
+	
+	textureCoords = textureCoords.concat(
+			this.dualEdges[0][0].data[0],	this.dualEdges[0][0].data[1],
+			this.dualEdges[0][1].data[0],	this.dualEdges[0][1].data[1],
+			this.dualEdges[0][2].data[0],	this.dualEdges[0][2].data[1],
+			this.edgeCenters[0].data[0],	this.edgeCenters[0].data[1],
+			this.halfEdges[0][0].data[0],	this.halfEdges[0][0].data[1],
+			this.halfEdges[0][1].data[0],	this.halfEdges[0][1].data[1],
+			this.halfEdges[0][2].data[0],	this.halfEdges[0][2].data[1],
+			this.halfEdges[0][0].data[0],	this.halfEdges[0][0].data[1],
+			this.halfEdges[0][1].data[0],	this.halfEdges[0][1].data[1],
+			this.halfEdges[0][2].data[0],	this.halfEdges[0][2].data[1],
+			this.vertices[0].data[0],	this.vertices[0].data[1],
+			this.spines[0][0].data[0],	this.spines[0][0].data[1],
+			this.spines[0][1].data[0],	this.spines[0][1].data[1],
+			this.spines[0][2].data[0],	this.spines[0][2].data[1],
+			this.interiors[0][0].data[0],	this.interiors[0][0].data[1],
+			this.interiors[0][1].data[0],	this.interiors[0][1].data[1],
+			this.interiors[0][2].data[0],	this.interiors[0][2].data[1],
+			this.interiors[0][0].data[0],	this.interiors[0][0].data[1],
+			this.interiors[0][1].data[0],	this.interiors[0][1].data[1],
+			this.interiors[0][2].data[0], 	this.interiors[0][2].data[1]
 		);
-		
-		textureCoords = textureCoords.concat(
-			this.halfEdges[i].data, 
-			this.halfEdges[i + p].data, 
-			this.spines[i].data, 
-			this.dualEdges[i].data,
-			this.interiors[i].data ,
-			this.interiors[i + p].data
-		);
-		
 	}
+	
+	vertices = vertices.concat(this.center.data[0], this.center.data[1]);
+	textureCoords = textureCoords.concat(this.center.data[0], this.center.data[1]);
+	
+	var centerI = vertices.length/2 - 1;
+	var dualEdgesI = [0, 1, 2];
+	var edgeCentersI = 3
+	var halfEdgesI = [4, 5, 6, 7, 8, 9]
+	var verticesI = 10;
+	var spinesI = [11, 12, 13];
+	var interiorsI = [14, 15, 16, 17, 18, 19];
+	
+	var n = 0;
+	var size = 20;
     var cubeVertexIndices = [
-        0, 1, 2,      
-        0, 2, 3
+        centerI, 
+        n * size + spinesI[2],
+        n * size + dualEdgesI[0],
+        n * size + interiorsI[0],
+        n * size + dualEdgesI[1],
+        n * size + interiorsI[1],
+        n * size + dualEdgesI[2],
+        n * size + halfEdgesI[0], 
+        n * size + edgeCentersI        
     ];
     
-    return [vertices, textureCoords, cubeVertexIndices]
+    return [vertices,  textureCoords, cubeVertexIndices]
 };
 	
 	/*face.prototype.coords = function(color, texture, textureBack, isInverting, isInverted, texOffset) {
-
-			GL.Color4(color);
-			GL.Enable(EnableCap.Texture2D);
-			GL.Enable(EnableCap.Blend);
-			GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-			GL.Enable(EnableCap.ColorLogicOp);
-			GL.LogicOp(LogicOp.Copy);
-			
-			GL.BindTexture(TextureTarget.Texture2D, texture);
-			//	prototype	AverageColor = Color4.Black;
-			
-			for (i = 0; i < p; i++) {
-
-				if (isInverting) {
-					if (isInverted ^ isFlipped) 
-						GL.LogicOp(LogicOp.CopyInverted);
-					else
-						GL.LogicOp(LogicOp.Copy);
-				}
 
 				GL.Begin(BeginMode.TriangleStrip);
 				GLVertex(center, 0, texOffset);

@@ -185,8 +185,7 @@
     	var arrays = d.initialFace.coords();
     	var vertices = arrays[0];
     	var textureCoords = arrays[1];
-    	var cubeVertexIndices = arrays[2];;
- 
+    	var cubeVertexIndices = arrays[2];
     	
         cubeVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
@@ -207,7 +206,7 @@
  
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
         cubeVertexIndexBuffer.itemSize = 1;
-        cubeVertexIndexBuffer.numItems = 6;
+        cubeVertexIndexBuffer.numItems = cubeVertexIndices.length;
     }
 
    function initBuffersOld() {
@@ -274,7 +273,8 @@
         
         gl.uniform2fv(shaderProgram.textureOffset, textureOffset.data)
         
-        gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    //    gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+         gl.drawElements(gl.TRIANGLE_STRIP, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
 
 

@@ -100,7 +100,7 @@ complex.prototype.conjugate = function() {
 };
 
 complex.prototype.transformArray = function(original, m) {
-	var transfomred = [original.length]
+	var transformed = [original.length];
 	for ( i = 0; i < original.length; i++) {
 		transformed[i] = original[i].transform(m);
 	}
@@ -109,7 +109,7 @@ complex.prototype.transformArray = function(original, m) {
 };
 
 complex.prototype.conjugateArray = function(original) {
-	var transfomred = [original.length]
+	var transformed = [original.length];
 	for ( i = 0; i < original.length; i++) {
 		transformed[i] = original[i].conjugate;
 	}
