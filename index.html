@@ -146,9 +146,10 @@
         neheTexture.image.src = "nehe.gif";
     }
     
+    var d;
     function initGeometry() {
-    	var c = circle.prototype.create(complex.one, 1);
-    	var d = new disc(new region(5, 5), "", true);
+    //	var c = circle.prototype.create(complex.one, 1);
+    	d = new disc(new region(5, 5), "", true);
     }
 
 
@@ -181,6 +182,35 @@
     var cubeVertexIndexBuffer;
 
     function initBuffers() {
+    	var arrays = d.initialFace.coords();
+    	var vertices = arrays[0];
+    	var textureCoords = arrays[1];
+    	var cubeVertexIndices = arrays[2];;
+ 
+    	
+        cubeVertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        cubeVertexPositionBuffer.itemSize = 2;
+        cubeVertexPositionBuffer.numItems = vertices.length;
+
+        cubeVertexTextureCoordBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+        cubeVertexTextureCoordBuffer.itemSize = 2;
+        cubeVertexTextureCoordBuffer.numItems = textureCoords.length;
+
+        cubeVertexIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+ 
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
+        cubeVertexIndexBuffer.itemSize = 1;
+        cubeVertexIndexBuffer.numItems = 6;
+    }
+
+   function initBuffersOld() {
         cubeVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
         vertices = [
@@ -277,9 +307,9 @@
         var canvas = document.getElementById("canvas");
         initGL(canvas);
         initShaders();
+        initGeometry();
         initBuffers();
         initTexture();
-        initGeometry();
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.enable(gl.DEPTH_TEST);

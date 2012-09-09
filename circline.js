@@ -14,8 +14,8 @@ circline.prototype.create = function(a, b, c) {
 
 circline.prototype.transform = function(m) {
 	inverse = m.inverse();
-	hermitian = mobius.multiply(mobius.multiply(inverse.Transpose, new mobius(new complex(this.a, 0), this.b.Conjugate, this.b, new complex(this.c, 0))), inverse.Conjugate);
-	return circline.create(hermitian.a.data[0], hermitian.c, hermitian.d.data[0]);
+	hermitian = mobius.prototype.multiply(mobius.prototype.multiply(inverse.transpose(), new mobius(new complex(this.a, 0), this.b.conjugate(), this.b, new complex(this.c, 0))), inverse.conjugate());
+	return circline.prototype.create(hermitian.a.data[0], hermitian.c, hermitian.d.data[0]);
 };
 
 circline.prototype.equals = function(cl) {
@@ -46,10 +46,10 @@ function circle(b, c) {
 	this.a = 1;
 	this.b = b;
 	this.c = c;
-
-	this.prototype = new circline();
-	this.prototype.constructor = this;
 }
+
+circle.prototype = new circline();
+circle.prototype.constructor = circle;
 
 circle.prototype.create = function(center, radius) {
 	return new circle(center.negative(), center.modulusSquared() - radius * radius);
@@ -65,7 +65,7 @@ circle.prototype.radiusSquared = function() {
 	return this.center.modulusSquared - this.c / this.a;
 };
 
-circle.prototype.radius = function() {
+circle.prototype.radius = function() {this
 	return Math.sqrt(this.radiusSquared());
 };
 
@@ -94,11 +94,10 @@ function line(b, c) {
 	this.a = 0;
 	this.b = b.scale(1 / c);
 	this.c = 1;
-	// not tested
-
-	this.prototype = new circline();
-	this.prototype.constructor = this;
 }
+
+line.prototype = new circline();
+line.prototype.constructor = line;
 
 line.prototype.createTwoPoint = function(p1, p2) { double
 	dx = p2.data[0] - p1.data[0]; double

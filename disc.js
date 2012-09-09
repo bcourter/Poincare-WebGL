@@ -1,7 +1,7 @@
 function region(p, q) {
 	this.p = p;
-	this.q = q; 
-	var sinP2 = Math.pow(Math.sin(Math.PI / p), 2); 
+	this.q = q;
+	var sinP2 = Math.pow(Math.sin(Math.PI / p), 2);
 	var cosQ2 = Math.pow(Math.cos(Math.PI / q), 2);
 	this.r = Math.sqrt(sinP2 / (cosQ2 - sinP2));
 	this.d = Math.sqrt(cosQ2 / (cosQ2 - sinP2));
@@ -22,10 +22,10 @@ function region(p, q) {
 	 *   11  12  13  05
 	 * 00  01  02  03  04
 	 * */
-	this.points = [15]; 
+	this.points = [15];
 	var count = 4;
-	for ( i = 0; i < count; i++) { 
-		var t =	i / count;
+	for ( i = 0; i < count; i++) {
+		var t = i / count;
 		var pp1 = center.scale(1 - t);
 		var pp2 = this.p2.scale(t);
 		this.points[i] = complex.prototype.add(pp1, pp2);
@@ -38,30 +38,54 @@ function region(p, q) {
 	this.points[14] = complex.prototype.add(this.p1, complex.prototype.add(this.p2, center).scale(1 / 2)).scale(1 / 2);
 }
 
-function face(region) {
-	this.region = region;
-	this.center = complex.zero;
-	var p = region.P;
-	this.isFlipped = false;
 
+function face(region, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, isFlipped) {
+	this.region = region;
+	this.center = center;
+	this.vertices = vertices;
+	this.edgeCenters = edgeCenters;
+	this.halfEdges = halfEdges;
+	this.spines = spines;
+	this.dualEdges = dualEdges;
+	this.interiors = interiors;
+	this.isFlipped = isFlipped;
+
+	var p = region.p;
+	this.edges = [p];
 	var increment = mobius.prototype.createRotation(2 * Math.PI / p);
 	var midvertex = region.p1;
 	var e = new edge(this, region.c, midvertex, midvertex.transform(increment.inverse()));
-
-	var mesh = region.points;
-	this.edges = [p];
-	this.vertices = [p];
-	this.edgeCenters = [p];
-
-	this.halfEdgePoints = [2 * p];
-	this.spinePoints = [p];
-	this.dualEdgePoints = [p];
-	this.interiorPoints = [2 * p];
-
+	
+	var edges = [p];
 	var rotation = mobius.identity;
 	for ( i = 0; i < p; i++) {
 		edges[i] = e.transform(rotation);
+		rotation = mobius.prototype.multiply(rotation, increment);
+	}
+}
 
+
+face.prototype.create = function(region) {
+	var region = region;
+	var center = complex.zero;
+	var p = region.p;
+	var isFlipped = false;
+
+	var increment = mobius.prototype.createRotation(2 * Math.PI / p);
+	var midvertex = region.p1;
+
+	var mesh = region.points;
+	var meshCount = 3;
+	var vertices = [p];
+	var edgeCenters = [p];
+
+	var halfEdgePoints = [2 * p];
+	var spinePoints = [p];
+	var dualEdgePoints = [p];
+	var interiorPoints = [2 * p];
+
+	var rotation = mobius.identity;
+	for ( i = 0; i < p; i++) {
 		dualEdgePoints[i] = [meshCount];
 		dualEdgePoints[i][0] = mesh[1].transform(rotation);
 		dualEdgePoints[i][1] = mesh[2].transform(rotation);
@@ -96,31 +120,237 @@ function face(region) {
 		interiorPoints[i + p][1] = mesh[13].conjugate().transform(rotation);
 		interiorPoints[i + p][2] = mesh[14].conjugate().transform(rotation);
 
-		rotation = complex.prototype.multiply(rotation, increment);
+		rotation = mobius.prototype.multiply(rotation, increment);
 	}
+
+	return new face(region, center, vertices, edgeCenters, halfEdgePoints, spinePoints, dualEdgePoints, interiorPoints, isFlipped);
+};
+
+face.prototype.transform = function(m) { int
+	p = this.region.p;
+	var edges = [p];
+
+	center = face.center().transform(m);
+	vertices = complex.prototype.transformArray(face.vertices, m);
+	edgeCenters = complex.prototype.transformArray(face.edgeCenters, m);
+
+	halfEdges = new complex[2 * p];
+	spines = new complex[p];
+	dualEdges = new complex[p];
+	interiors = new complex[2 * p];
+
+	for ( i = 0; i < p; i++) {
+		edges[i] = complex.prototype.transformArray(face.edges[i], m);
+		halfEdges[i] = complex.prototype.transformArray(face.halfEdgePoints[i], m);
+		halfEdges[i + p] = complex.prototype.transformArray(face.halfEdgePoints[i + p], m);
+		spines[i] = complex.prototype.transformArray(face.spinePoints[i], m);
+		dualEdges[i] = complex.prototype.transformArray(face.dualEdgePoints[i], m);
+		interiors[i] = complex.prototype.transformArray(face.interiorPoints[i], m);
+		interiors[i + p] = complex.prototype.transformArray(face.interiorPoints[i + p], m);
+	}
+
+	return new face(this.region, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, this.isFlipped);
 }
+
+face.prototype.conjugate = function(m) { int
+	p = this.region.p;
+	var edges = [p];
+
+	center = face.center().conjugate(m);
+	vertices = complex.prototype.conjugateArray(face.vertices);
+	edgeCenters = complex.prototype.conjugateArray(face.edgeCenters);
+
+	halfEdges = new Complex[2 * p];
+	spines = new Complex[p];
+	dualEdges = new Complex[p];
+	interiors = new Complex[2 * p];
+
+	for ( i = 0; i < p; i++) {
+		edges[i] = complex.prototype.conjugateArray(face.edges[i]);
+		halfEdges[i] = complex.prototype.conjugateArray(face.halfEdgePoints[i]);
+		halfEdges[i + p] = complex.prototype.conjugateArray(face.halfEdgePoints[i + p]);
+		spines[i] = complex.prototype.conjugateArray(face.spinePoints[i]);
+		dualEdges[i] = complex.prototype.conjugateArray(face.dualEdgePoints[i]);
+		interiors[i] = complex.prototype.conjugateArray(face.interiorPoints[i]);
+		interiors[i + p] = complex.prototype.conjugateArray(face.interiorPoints[i + p]);
+	}
+
+	return new face(this.region, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, !this.isFlipped);
+};
+
+face.prototype.coords = function() {
+	var p = this.region.p;
+	var halfEdgesOffset = 0;
+	var spinesOffset = halfEdgesOffset + 2 * p;
+	var dualEdgesOffset = spinesOffset + p;
+	var interiorsOffset = dualEdgesOffset + p;
+	var length = interiorsOffset + 2 * p;
+	
+	var vertices = [];
+	var textureCoords = [];
+	for (i = 0 ; i < p; i ++){
+		vertices = vertices.concat(
+			this.halfEdges[i].data, 
+			this.halfEdges[i + p].data, 
+			this.spines[i].data, 
+			this.dualEdges[i].data,
+			this.interiors[i].data ,
+			this.interiors[i + p].data
+		);
+		
+		textureCoords = textureCoords.concat(
+			this.halfEdges[i].data, 
+			this.halfEdges[i + p].data, 
+			this.spines[i].data, 
+			this.dualEdges[i].data,
+			this.interiors[i].data ,
+			this.interiors[i + p].data
+		);
+		
+	}
+    var cubeVertexIndices = [
+        0, 1, 2,      
+        0, 2, 3
+    ];
+    
+    return [vertices, textureCoords, cubeVertexIndices]
+};
+	
+	/*face.prototype.coords = function(color, texture, textureBack, isInverting, isInverted, texOffset) {
+
+			GL.Color4(color);
+			GL.Enable(EnableCap.Texture2D);
+			GL.Enable(EnableCap.Blend);
+			GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+			GL.Enable(EnableCap.ColorLogicOp);
+			GL.LogicOp(LogicOp.Copy);
+			
+			GL.BindTexture(TextureTarget.Texture2D, texture);
+			//	prototype	AverageColor = Color4.Black;
+			
+			for (i = 0; i < p; i++) {
+
+				if (isInverting) {
+					if (isInverted ^ isFlipped) 
+						GL.LogicOp(LogicOp.CopyInverted);
+					else
+						GL.LogicOp(LogicOp.Copy);
+				}
+
+				GL.Begin(BeginMode.TriangleStrip);
+				GLVertex(center, 0, texOffset);
+				GLVertex(spinePoints[i][2], 11, texOffset);
+				GLVertex(dualEdgePoints[i][0], 1, texOffset);
+				GLVertex(interiorPoints[i][0], 12, texOffset);
+				GLVertex(dualEdgePoints[i][1], 2, texOffset);
+				GLVertex(interiorPoints[i][1], 13, texOffset);
+				GLVertex(dualEdgePoints[i][2], 3, texOffset);
+				GLVertex(halfEdgePoints[i][0], 5, texOffset);
+				GLVertex(edgeCenters[i], 4, texOffset);
+				GL.End();
+
+				GL.Begin(BeginMode.TriangleStrip);
+				GLVertex(spinePoints[i][2], 11, texOffset);
+				GLVertex(spinePoints[i][1], 10, texOffset);
+				GLVertex(interiorPoints[i][0], 12, texOffset);
+				GLVertex(interiorPoints[i][2], 14, texOffset);
+				GLVertex(interiorPoints[i][1], 13, texOffset);
+				GLVertex(halfEdgePoints[i][1], 6, texOffset);
+				GLVertex(halfEdgePoints[i][0], 5, texOffset);
+				GL.End();
+
+				GL.Begin(BeginMode.TriangleStrip);
+				GLVertex(spinePoints[i][1], 10, texOffset);
+				GLVertex(spinePoints[i][0], 9, texOffset);
+				GLVertex(interiorPoints[i][2], 14, texOffset);
+				GLVertex(halfEdgePoints[i][2], 7, texOffset);
+				GLVertex(halfEdgePoints[i][1], 6, texOffset);
+				GL.End();
+
+				GL.Begin(BeginMode.TriangleStrip);
+				GLVertex(spinePoints[i][0], 9, texOffset);
+				GLVertex(vertices[i], 8, texOffset);
+				GprototypeLVertex(halfEdgePoints[i][2], 7, texOffset);
+				GL.End();
+
+				if (isInverting) {
+					if (isInverted ^ isFlipped) 
+						GL.LogicOp(LogicOp.Copy);
+					else
+						GL.LogicOp(LogicOp.CopyInverted);
+				}
+
+				int ii = (i + p - 1) % p;
+				GL.Begin(BeginMode.TriangleStrip);
+				GLVertex(center, 0, texOffset);
+				GLVertex(spinePoints[ii][2], 11, texOffset);
+				GLVertex(dualEdgePoints[i][0], 1, texOffset);
+				GLVertex(interiorPoints[i + p][0], 12, texOffset);
+				GLVertex(dualEdgePoints[i][1], 2, texOffset);
+				GLVertex(interiorPoints[i + p][1], 13, texOffset);
+				GLVertex(dualEdgePoints[i][2], 3, texOffset);
+				GLVertex(halfEdgePoints[i + p][0], 5, texOffset);
+				GLVertex(edgeCenters[i], 4, texOffset);
+				GL.End();
+
+				GL.Begin(BeginMode.TriangleStrip);
+				GLVertex(spinePoints[ii][2], 11, texOffset);
+				GLVertex(spinePoints[ii][1], 10, texOffset);
+				GLVertex(interiorPoints[i + p][0], 12, texOffset);
+				GLVertex(interiorPoints[i + p][2], 14, texOffset);
+				GLVertex(interiorPoints[i + p][1], 13, texOffset);
+				GLVertex(halfEdgePoints[i + p][1], 6, texOffset);
+				GLVertex(halfEdgePoints[i + p][0], 5, texOffset);
+				GL.End();
+
+				GL.Begin(BeginMode.TriangleStrip);
+				GLVertex(spinePoints[ii][1], 10, texOffset);
+				GLVertex(spinePoints[ii][0], 9, texOffset);
+				GLVertex(interiorPoints[i + p][2], 14, texOffset);
+				GLVertex(halfEdgePoints[i + p][2], 7, texOffset);
+				GLVertex(halfEdgePoints[i + p][1], 6, texOffset);
+				GL.End();;
+
+				GL.Begin(BeginMode.TriangleStrip);
+				GLVertex(spinePoints[ii][0], 9, texOffset);
+				GLVertex(vertices[ii], 8, texOffset);
+				GLVertex(halfEdgePoints[i + p][2], 7, texOffset);
+				GL.End();
+			}
+
+			GL.Disable(EnableCap.Texture2D);
+			
+//			GL.LogicOp(LogicOp.Invert);
+//			foreach (Edge edge in edges) 
+//				edge.DrawGL(color);
+			
+			GL.Disable(EnableCap.ColorLogicOp);
+			GL.Disable(EnableCap.Blend);
+			
+		};
+*/
 
 function edge(face, circline, start, end) {
 	this.face = face;
 	this.circline = circline;
 	this.start = start;
 	this.end = end;
-}
+};
 
 edge.prototype.transform = function(m) {
-	return new edge(this.face, this.circline.transform(m), this.start.transfrom(m), m * this.end.transform(m));
-}
+	return new edge(this.face, this.circline.transform(m), this.start.transform(m), this.end.transform(m));
+};
 
 edge.prototype.conjugate = function() {
-	return new edge(this.face, this.circline.conjugate(), this.start.conjugate(), m * this.end.conjugate());
-}
+	return new edge(this.face, this.circline.conjugate(), this.start.conjugate(), this.end.conjugate());
+};
 
 
 function disc(region, bitmap, isInverting) {
 	this.region = region;
 	this.isInverting = isInverting;
 
-	this.currentFace = new face(region);
+	this.currentFace = face.prototype.create(region);
 	this.initialFace = this.currentFace;
 
 	/*			// texture
@@ -149,4 +379,5 @@ function disc(region, bitmap, isInverting) {
 	this.drawCount = 1;
 	this.totalDraw = 0;
 }
+
 

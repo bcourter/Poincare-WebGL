@@ -8,19 +8,20 @@ accuracy.prototype.maxLength = 100;
 
 accuracy.prototype.lengthEquals = function(a, b) {
 	return Math.abs(a - b) < accuracy.linearTolerance;
-}
+};
 
 accuracy.prototype.lengthIsZero = function(a) {
 	return Math.abs(a) < accuracy.linearTolerance;
-}
+};
 
 accuracy.prototype.angleEquals = function(a, b) {
 	return Math.Abs(a - b) < accuracy.angularTolerance;
-}
+};
 
 accuracy.prototype.angleIsZero = function(a) {
 	return Math.Abs(a) < accuracy.angularTolerance;
-}
+};
+
 function complex(a) {
 	this.data = new glMatrixArrayType(2);
 	this.data[0] = a[0];
@@ -50,6 +51,10 @@ complex.prototype.subtract = function(a, b) {
 };
 
 complex.prototype.multiply = function(a, b) {
+	if (a == undefined || b == undefined || a.data == undefined || b.data == undefined) {
+		var x = 0;
+	}
+	
 	return new complex([a.data[0] * b.data[0] - a.data[1] * b.data[1], a.data[0] * b.data[1] + a.data[1] * b.data[0]]);
 };
 
@@ -86,14 +91,30 @@ complex.prototype.negative = function() {
 	return new complex([-this.data[0], -this.data[1]]);
 };
 
+complex.prototype.transform = function(m) {
+	return complex.prototype.divide(complex.prototype.add(complex.prototype.multiply(m.a, this), m.b), complex.prototype.add(complex.prototype.multiply(m.c, this), m.d));
+};
+
 complex.prototype.conjugate = function() {
 	return new complex([this.data[0], -this.data[1]]);
 };
 
-complex.prototype.transform = function(m) {
-	var n =complex.prototype.add(complex.prototype.multiply(m.a, this), m.b);
-	var d = complex.prototype.add(complex.prototype.multiply(m.c, this), m.d);
-	return complex.prototype.divide(n, d);
+complex.prototype.transformArray = function(original, m) {
+	var transfomred = [original.length]
+	for ( i = 0; i < original.length; i++) {
+		transformed[i] = original[i].transform(m);
+	}
+	
+	return transformed;
+};
+
+complex.prototype.conjugateArray = function(original) {
+	var transfomred = [original.length]
+	for ( i = 0; i < original.length; i++) {
+		transformed[i] = original[i].conjugate;
+	}
+	
+	return transformed;
 };
 
 complex.prototype.toString = function() {
@@ -110,11 +131,16 @@ function mobius(a, b, c, d) {
 mobius.identity = new mobius(complex.one, complex.zero, complex.zero, complex.one);
 
 mobius.prototype.multiply = function(m1, m2) {
-	return new mobius(m2.a * m1.a + m2.b * m1.c, m2.a * m1.b + m2.b * m1.d, m2.c * m1.a + m2.d * m1.c, m2.c * m1.b + m2.d * m1.d);
+    return new mobius(
+        complex.prototype.add(complex.prototype.multiply(m2.a, m1.a), complex.prototype.multiply(m2.b, m1.c)), 
+        complex.prototype.add(complex.prototype.multiply(m2.a, m1.b), complex.prototype.multiply(m2.b, m1.d)), 
+        complex.prototype.add(complex.prototype.multiply(m2.c, m1.a), complex.prototype.multiply(m2.d, m1.c)), 
+        complex.prototype.add(complex.prototype.multiply(m2.c, m1.b), complex.prototype.multiply(m2.d, m1.d))
+    );
 };
 
 mobius.prototype.createDiscAutomorphism = function(a, phi) {
-	return mobius.multiply(mobius.createRotation(phi), new Mobius(Complex.One, -a, a.Conjugate, -Complex.One));
+	return mobius.multiply(mobius.createRotation(phi), new mobius(complex.one, a.negative(), a.conjugate(), complex.one.negative()));
 };
 
 mobius.prototype.createDiscTranslation = function(a, b) {
