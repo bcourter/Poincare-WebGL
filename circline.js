@@ -23,7 +23,8 @@ circline.prototype.equals = function(cl) {
 };
 
 circline.prototype.isPointOnLeft = function(p) {
-	return (this.a * p.modulusSquared + complex.add(complex.multiply(this.b.conjugate(), p) , 			complex.multiply(this.b , p.conjugate)).data[0] + this.c + Accuracy.LinearTolerance) > 0;
+	return (this.a * p.modulusSquared + complex.add(complex.multiply(this.b.conjugate(), p),
+	complex.multiply(this.b , p.conjugate)).data[0] + this.c + Accuracy.LinearTolerance) > 0;
 };
 
 circline.prototype.containsPoint = function(p) {
@@ -85,7 +86,7 @@ circle.prototype.scale = function(scale) {
 	if ( typeof scale === "complex") {
 		scale = scale.modulus;
 	}
-	
+
 	return circle.prototype.create(this.center().scale(scale), this.radius() * scale);
 };
 
@@ -100,7 +101,8 @@ line.prototype = new circline();
 line.prototype.constructor = line;
 
 line.prototype.createTwoPoint = function(p1, p2) { double
-	dx = p2.data[0] - p1.data[0]; double
+	dx = p2.data[0] - p1.data[0];
+	double
 	dy = p2.data[1] - p1.data[1];
 
 	return this.prototype.createEquation(-dy, dx, dx * p1.data[1] - dy * p1.data[0]);

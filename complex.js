@@ -140,7 +140,7 @@ mobius.prototype.multiply = function(m1, m2) {
 };
 
 mobius.prototype.createDiscAutomorphism = function(a, phi) {
-	return mobius.multiply(mobius.createRotation(phi), new mobius(complex.one, a.negative(), a.conjugate(), complex.one.negative()));
+	return mobius.prototype.multiply(mobius.prototype.createRotation(phi), new mobius(complex.one, a.negative(), a.conjugate(), complex.one.negative()));
 };
 
 mobius.prototype.createDiscTranslation = function(a, b) {

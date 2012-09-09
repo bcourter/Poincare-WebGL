@@ -17,10 +17,10 @@
     varying vec2 vTextureCoord;
 
     uniform sampler2D uSampler;
-    uniform vec2 vOffset;
+    uniform vec2 vTextureOffset;
 
     void main(void) {
-        gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t) - vOffset);
+        gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t) - vTextureOffset);
     }
 </script>
 
@@ -30,12 +30,35 @@
 
     uniform mat4 uMVMatrix;
     uniform mat4 uPMatrix;
+    uniform vec2 uMobiusA;
+    uniform vec2 uMobiusB;
+    uniform vec2 uMobiusC;
+    uniform vec2 uMobiusD;
+    
+    varying vec2 pos;
 
     varying vec2 vTextureCoord;
-
+    
+    vec2 cMultiply(in vec2 a, in vec2 b) {
+    	return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+    }
+    
+    vec2 cDivide(in vec2 a, in vec2 b) {
+		float automorphy = b.x * b.x + b.y * b.y;
+		return vec2((a.x * b.x + a.y * b.y) / automorphy, (a.y * b.x - a.x * b.y) / automorphy);
+	}
 
     void main(void) {
-        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+ 		//  gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        pos.x = aVertexPosition.x;
+   		pos.y = aVertexPosition.y;
+   		
+   		pos = cDivide(
+   			cMultiply(uMobiusA, pos) + uMobiusB, 
+   			cMultiply(uMobiusC, pos) + uMobiusD
+   		);
+
+       	gl_Position = uPMatrix * uMVMatrix * vec4(pos, 0.0, 1.0);
         vTextureCoord = aTextureCoord;
     }
 </script>
@@ -52,7 +75,7 @@
             gl.viewportHeight = canvas.height;
         } catch (e) {
         }
-        if (!gl) {
+        if (!gl) {O
             alert("Could not initialise WebGL, sorry :-(");
         }
     }
@@ -120,7 +143,11 @@
         shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
         shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
         shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
-        shaderProgram.textureOffset = gl.getUniformLocation(shaderProgram, "vOffset");
+        shaderProgram.textureOffset = gl.getUniformLocation(shaderProgram, "vTextureOffset");
+        shaderProgram.mobiusA = gl.getUniformLocation(shaderProgram, "uMobiusA");
+        shaderProgram.mobiusB = gl.getUniformLocation(shaderProgram, "uMobiusB");
+        shaderProgram.mobiusC = gl.getUniformLocation(shaderProgram, "uMobiusC");
+        shaderProgram.mobiusD = gl.getUniformLocation(shaderProgram, "uMobiusD");
     }
 
 
@@ -212,8 +239,10 @@
     }
 
     var textureOffset = complex.zero;
+    var motionOffset = complex.one;
+	var motionMobius = mobius.identity;
 
-    function drawScene() {
+    function drawScene() {shaderProgram.mobiusA
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -235,6 +264,10 @@
         setMatrixUniforms();
         
         gl.uniform2fv(shaderProgram.textureOffset, textureOffset.data)
+        gl.uniform2fv(shaderProgram.mobiusA, motionMobius.a.data)
+        gl.uniform2fv(shaderProgram.mobiusB, motionMobius.b.data)
+        gl.uniform2fv(shaderProgram.mobiusC, motionMobius.c.data)
+        gl.uniform2fv(shaderProgram.mobiusD, motionMobius.d.data)
         
     //    gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
  		for(i = 0; i < cubeVertexIndexBuffer.length; i++) {
@@ -254,6 +287,8 @@
             elapsed *= 0.00001;
 
         	textureOffset = new complex([Math.cos(3.0 * elapsed), Math.sin(2.0 * elapsed)]);
+        	motionOffset = complex.prototype.createPolar(0.5, elapsed * 100);
+        	motionMobius = mobius.prototype.createDiscAutomorphism(motionOffset, 0);
         //	textureOffset = complex.create([elapsed, 0.0]);
         } else {
         	startTime = timeNow;
