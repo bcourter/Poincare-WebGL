@@ -8,7 +8,7 @@ function region(p, q) {
 	this.phi = Math.PI * (0.5 - (1.0 / p + 1.0 / q));
 
 	this.l1 = line.prototype.createTwoPoint(complex.zero, complex.one);
-	this.l2 = line.prototype.createTwoPoint(complex.zero, Math.PI / p);
+	this.l2 = line.prototype.createPointAngle(complex.zero, Math.PI / p);
 	this.c = circle.prototype.create(new complex([this.d, 0]), this.r);
 	var center = this.c.center();
 
@@ -25,7 +25,7 @@ function region(p, q) {
 	 * */
 	this.points = [15];
 	var count = 4;
-	for ( i = 0; i < count; i++) {
+	for (var i = 0;  i < count; i++) {
 		var t = i / count;
 
 		this.points[i] = this.p2.scale(t);
@@ -51,17 +51,19 @@ function face(region, center, vertices, edgeCenters, halfEdges, spines, dualEdge
 	this.isFlipped = isFlipped;
 
 	var p = region.p;
-	this.edges = [p];
+
 	var increment = mobius.prototype.createRotation(2 * Math.PI / p);
 	var midvertex = region.p1;
 	var e = new edge(this, region.c, midvertex, midvertex.transform(increment.inverse()));
 	
-	var edges = [p];
+	this.edges = [p];
 	var rotation = mobius.identity;
-	for ( i = 0; i < p; i++) {
-		edges[i] = e.transform(rotation);
+	for (var i = 0;  i < p; i++) {
+		this.edges[i] = e.transform(rotation);
 		rotation = mobius.prototype.multiply(rotation, increment);
 	}
+	
+	this.init();
 }
 
 face.prototype.create = function(region) {
@@ -78,14 +80,13 @@ face.prototype.create = function(region) {
 	var meshCount = 3;
 	var vertices = [p];
 	var edgeCenters = [p];
-
 	var halfEdgePoints = [2 * p];
 	var spinePoints = [p];
 	var dualEdgePoints = [p];
 	var interiorPoints = [2 * p];
 
 	var rotation = mobius.identity;
-	for ( i = 0; i < p; i++) {
+	for (var i = 0;  i < p; i++) {
 		dualEdgePoints[i] = [meshCount];
 		dualEdgePoints[i][0] = mesh[1].transform(rotation);
 		dualEdgePoints[i][1] = mesh[2].transform(rotation);
@@ -127,68 +128,73 @@ face.prototype.create = function(region) {
 };
 
 
-face.prototype.createWithEdges = function(region, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, isFlipped) {
-	var f = new face(region, center, vertices, edgeCenters, halfEdgePoints, spinePoints, dualEdgePoints, interiorPoints, isFlipped);
+face.prototype.createWithEdges = function(previous, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, isFlipped) {
+	var f = new face(previous.region, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, isFlipped);
 	f.edges = edges;
+	f.cubeVertexTextureCoordBuffer = previous.cubeVertexTextureCoordBuffer;
+	return f;
 }
 
-face.prototype.transform = function(m) { int
-	p = this.region.p;
+face.prototype.transform = function(m) { 
+	var p = this.region.p;
 	var edges = [p];
 
-	center = face.cinteriorsIenter().transform(m);
-	vertices = complex.prototype.transformArray(face.vertices, m);
-	edgeCenters = complex.prototype.transformArray(face.edgeCenters, m);
+	var center = this.center.transform(m);
+	var vertices = complex.prototype.transformArray(this.vertices, m);
+	var edgeCenters = complex.prototype.transformArray(this.edgeCenters, m);
 
-	halfEdges = [2 * p];
-	spines = [p];
-	dualEdges = [p];
-	interiors = [2 * p];
+	var halfEdges = [2 * p];
+	var spines = [p];
+	var dualEdges = [p];
+	var interiors = [2 * p];
 
-	for ( i = 0; i < p; i++) {
-		halfEdges[i] = complex.prototype.transformArray(face.halfEdgePoints[i], m);
-		halfEdges[i + p] = complex.prototype.transformArray(face.halfEdgePoints[i + p], m);
-		spines[i] = complex.prototype.transformArray(face.spinePoints[i], m);
-		dualEdges[i] = complex.prototype.transformArray(face.dualEdgePoints[i], m);
-		interiors[i] = complex.prototype.transformArray(face.interiorPoints[i], m);
-		interiors[i + p] = complex.prototype.transformArray(face.interiorPoints[i + p], m);
+	for (var i = 0; i < p; i++) {
+		edges[i] = this.edges[i].transform(m);
+
+		halfEdges[i] = complex.prototype.transformArray(this.halfEdges[i], m);
+		halfEdges[i + p] = complex.prototype.transformArray(this.halfEdges[i + p], m);
+		spines[i] = complex.prototype.transformArray(this.spines[i], m);
+		dualEdges[i] = complex.prototype.transformArray(this.dualEdges[i], m);
+		interiors[i] = complex.prototype.transformArray(this.interiors[i], m);
+		interiors[i + p] = complex.prototype.transformArray(this.interiors[i + p], m);
 	}
 
-	return face.prototype.createWithEdges(this.region, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, this.isFlipped);
+	return face.prototype.createWithEdges(this, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, this.isFlipped);
 }
 
-face.prototype.conjugate = function(m) { int
-	p = this.region.p;
+face.prototype.conjugate = function() { 
+	var p = this.region.p;
 	var edges = [p]; 
 
-	center = face.center().conjugate(m);
-	vertices = complex.prototype.conjugateArray(face.vertices);
-	edgeCenters = complex.prototype.conjugateArray(face.edgeCenters);
+	var center = this.center.conjugate();
+	var vertices = complex.prototype.conjugateArray(this.vertices);
+	var edgeCenters = complex.prototype.conjugateArray(this.edgeCenters);
 
-	halfEdges = new Complex[2 * p];
-	spines = new Complex[p];
-	dualEdges = new Complex[p];
-	interiors = new Complex[2 * p];
+	var halfEdges = [2 * p];
+	var spines = [p];
+	var dualEdges = [p];
+	var interiors = [2 * p];
 
-	for ( i = 0; i < p; i++) {
-		edges[i] = complex.prototype.conjugateArray(face.edges[i]);
-		halfEdges[i] = complex.prototype.conjugateArray(face.halfEdgePoints[i]);
-		halfEdges[i + p] = complex.prototype.conjugateArray(face.halfEdgePoints[i + p]);
-		spines[i] = complex.prototype.conjugateArray(face.spinePoints[i]);
-		dualEdges[i] = complex.prototype.conjugateArray(face.dualEdgePoints[i]);
-		interiors[i] = complex.prototype.conjugateArray(face.interiorPoints[i]);
-		interiors[i + p] = complex.prototype.conjugateArray(face.interiorPoints[i + p]);
+	for (var i = 0; i < p; i++) {
+		edges[i] = this.edges[i].conjugate();
+
+		halfEdges[i] = complex.prototype.conjugateArray(this.halfEdges[i]);
+		halfEdges[i + p] = complex.prototype.conjugateArray(this.halfEdges[i + p]);
+		spines[i] = complex.prototype.conjugateArray(this.spines[i]);
+		dualEdges[i] = complex.prototype.conjugateArray(this.dualEdges[i]);
+		interiors[i] = complex.prototype.conjugateArray(this.interiors[i]);
+		interiors[i + p] = complex.prototype.conjugateArray(this.interiors[i + p]);
 	}
 
-	return face.prototype.createWithEdges(this.region, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, this.isFlipped);
+	return face.prototype.createWithEdges(this, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, this.isFlipped);
 };
 
-face.prototype.coords = function() {
+face.prototype.init = function() {
 	var p = this.region.p;
 
 	var vertices = [];
 	var textureCoords = [];
-	for (i = 0; i < p; i ++){
+	for (var i = 0;  i < p; i ++){
 		vertices = vertices.concat(
 			this.dualEdges[i][0].data[0],	this.dualEdges[i][0].data[1],
 			this.dualEdges[i][1].data[0],	this.dualEdges[i][1].data[1],
@@ -211,7 +217,7 @@ face.prototype.coords = function() {
 			this.interiors[i + p][1].data[0],	this.interiors[i + p][1].data[1],
 			this.interiors[i + p][2].data[0], 	this.interiors[i + p][2].data[1]
 		); 
-	
+
 	textureCoords = textureCoords.concat(
 			this.dualEdges[0][0].data[0],	this.dualEdges[0][0].data[1],
 			this.dualEdges[0][1].data[0],	this.dualEdges[0][1].data[1],
@@ -310,7 +316,7 @@ face.prototype.coords = function() {
 	        n * size + halfEdgesI[4],
 	        n * size + halfEdgesI[3]     
 	    ]);
-	    
+	   
 	    cubeVertexIndices.push([
 	        nn * size + spinesI[1],
 	        nn * size + spinesI[0],
@@ -325,9 +331,48 @@ face.prototype.coords = function() {
 	        n * size + halfEdgesI[5]   
 	    ]);
     }
-    
-    return [vertices,  textureCoords, cubeVertexIndices]
+       
+    this.cubeVertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeVertexPositionBuffer);
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    this.cubeVertexPositionBuffer.itemSize = 2;
+    this.cubeVertexPositionBuffer.numItems = vertices.length;shaderProgram.mobiusA
+
+    this.cubeVertexTextureCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeVertexTextureCoordBuffer);
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+    this.cubeVertexTextureCoordBuffer.itemSize = 2;
+    this.cubeVertexTextureCoordBuffer.numItems = textureCoords.length;
+
+	this.indexBuffers = [];
+	for(i = 0; i < cubeVertexIndices.length; i++) {
+        this.indexBuffers[i] = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffers[i]);
+ 
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices[i]), gl.STATIC_DRAW);
+        this.indexBuffers[i].itemSize = 1;
+        this.indexBuffers[i].numItems = cubeVertexIndices[i].length;
+   	}
 };
+
+face.prototype.draw = function(motionMobius, textureOffset, texture, shaderProgram){
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeVertexPositionBuffer);
+    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, this.cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeVertexTextureCoordBuffer);
+    gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, this.cubeVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.uniform1i(shaderProgram.samplerUniform, 0);
+   
+	for(i = 0; i < this.indexBuffers.length; i++) {
+       	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffers[i]);
+  		gl.drawElements(gl.TRIANGLE_STRIP, this.indexBuffers[i].numItems, gl.UNSIGNED_SHORT, 0);
+   	}
+}
 
 
 function edge(face, circline, start, end) {
@@ -342,16 +387,24 @@ edge.prototype.transform = function(m) {
 };
 
 edge.prototype.conjugate = function() {
-	return new edge(this.face, this.circline.conjugate(), this.start.conjugate(), this.end.conjugate());
+	return new edge(this.face, this.circline.conjugate(), this.end.conjugate(), this.start.conjugate());
 };
 
+edge.prototype.isConvex = function() {
+	if (this.circline.constructor != circle)
+		return false;
+
+	var a1 = complex.prototype.subtract(this.end, this.start).argument();
+	var a2 = complex.prototype.subtract(this.circline.center(), this.start).argument();
+	return (a1 - a2 + 4 * Math.PI) % (2 * Math.PI) < Math.PI;
+};
 
 function disc(region, bitmap, isInverting) {
 	this.region = region;
 	this.isInverting = isInverting;
 
-	this.currentFace = face.prototype.create(region);
-	this.initialFace = this.currentFace;
+	this.initialFace = face.prototype.create(region); //.transform(mobius.prototype.createDiscAutomorphism(new complex([0.001, 0.001]), 0));
+	this.faces = [this.initialFace];
 
 	/*			// texture
 	 GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
@@ -378,6 +431,88 @@ function disc(region, bitmap, isInverting) {
 	 */
 	this.drawCount = 1;
 	this.totalDraw = 0;
+
+	this.initFaces();
+	this.initTextures();
 }
 
+disc.prototype.initFaces = function() {
+	var circleLimit = 0.999;
+	var seedFace = this.initialFace;
+	var faceQueue = [seedFace];
+	var faceCenters = [seedFace.center];
+	
+	var count = 1;
+	var minDist = 1;
+	while(faceQueue.length > 0) {
+		f = faceQueue.pop();
+	
+		for(var i in f.edges){
+			var e = f.edges[i];
+			if (e.isConvex()) { 
+				continue; 
+				}
+		
+		var c = e.circline;
+			if (c.constructor != circle) {
+				continue;
+			} 
+			
+			if  (c.radiusSquared() < 1.5E-4) { 
+				continue; 
+			}
+				
+			var m = e.circline.asMobius();
+			var image =  f.conjugate().transform(m);
+			if (isNaN(image.center.data[0])) {
+				alert();
+				continue;
+			}
+					
+			if (image.center.modulusSquared() > circleLimit) { 
+				continue; 
+			}
+			
+			var isDone = false;
+			
+			for (var j in faceCenters) {
+				if (complex.prototype.equals(faceCenters[j], image.center)) {	
+					isDone = true;
+					break;
+				}
+			}
+			if (isDone) { 
+				continue; 
+				}
+			
+			this.faces.push(image);
+			faceQueue.push(image);
+			faceCenters.push(image.center);
+			count++;
+		}
+	}
+	
+}
+
+var texture;  // TBD figure out how to tidy this up.
+disc.prototype.initTextures = function() {
+	texture = gl.createTexture();
+	texture.image = new Image();
+	texture.image.onload = function () {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+	}
+	
+	texture.image.src = "nehe.gif";
+};
+
+disc.prototype.draw = function(motionMobius, textureOffset, shaderProgram) {
+	for(var i in this.faces){
+		this.faces[i].draw(motionMobius, textureOffset, texture, shaderProgram);
+	}
+}
 

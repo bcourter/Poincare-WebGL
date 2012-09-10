@@ -1,10 +1,10 @@
 function accuracy() {
 }
 
-accuracy.prototype.linearTolerance = 1E-9;
-accuracy.prototype.angularTolerance = 1E-3;
-accuracy.prototype.linearToleranceSquared = accuracy.linearTolerance * accuracy.linearTolerance;
-accuracy.prototype.maxLength = 100;
+accuracy.linearTolerance = 1E-6;
+accuracy.angularTolerance = 1E-2;
+accuracy.linearToleranceSquared = accuracy.linearTolerance * accuracy.linearTolerance;
+accuracy.maxLength = 100;
 
 accuracy.prototype.lengthEquals = function(a, b) {
 	return Math.abs(a - b) < accuracy.linearTolerance;
@@ -21,9 +21,10 @@ accuracy.prototype.angleEquals = function(a, b) {
 accuracy.prototype.angleIsZero = function(a) {
 	return Math.Abs(a) < accuracy.angularTolerance;
 };
-
+	
 function complex(a) {
-	this.data = new glMatrixArrayType(2);
+	this.data = [2];
+//	this.data = new glMatrixArrayType(2);
 	this.data[0] = a[0];
 	this.data[1] = a[1];
 }
@@ -46,7 +47,7 @@ complex.prototype.add = function(a, b) {
 	return new complex([a.data[0] + b.data[0], a.data[1] + b.data[1]]);
 };
 
-complex.prototype.subtract = function(a, b) {
+complex.prototype.subtract = function(a, b) {	
 	return new complex([a.data[0] - b.data[0], a.data[1] - b.data[1]]);
 };
 
@@ -72,7 +73,7 @@ complex.prototype.scale = function(s) {
 };
 
 complex.prototype.equals = function(a, b) {
-	return complex.subtract(a, b).modulusSquared < accuracy.linearToleranceSquared;
+	return complex.prototype.subtract(a, b).modulusSquared() < 0.000001;
 };
 
 complex.prototype.modulus = function() {
@@ -101,7 +102,7 @@ complex.prototype.conjugate = function() {
 
 complex.prototype.transformArray = function(original, m) {
 	var transformed = [original.length];
-	for ( i = 0; i < original.length; i++) {
+	for (i in original) {
 		transformed[i] = original[i].transform(m);
 	}
 	
@@ -110,8 +111,8 @@ complex.prototype.transformArray = function(original, m) {
 
 complex.prototype.conjugateArray = function(original) {
 	var transformed = [original.length];
-	for ( i = 0; i < original.length; i++) {
-		transformed[i] = original[i].conjugate;
+	for (i in original) {
+		transformed[i] = original[i].conjugate();
 	}
 	
 	return transformed;
@@ -122,6 +123,18 @@ complex.prototype.toString = function() {
 };
 
 function mobius(a, b, c, d) {
+/*	var det = complex.prototype.subtract(
+		complex.prototype.multiply(a,d),
+		complex.prototype.multiply(b,c)
+	);
+	
+	if (!accuracy.prototype.lengthIsZero(det)) {
+		a = complex.prototype.divide(a, det);
+		b = complex.prototype.divide(b, det);
+		c = complex.prototype.divide(c, det);
+		d = complex.prototype.divide(d, det);
+	}
+	*/
 	this.a = a;
 	this.b = b;
 	this.c = c;
@@ -130,7 +143,7 @@ function mobius(a, b, c, d) {
 
 mobius.identity = new mobius(complex.one, complex.zero, complex.zero, complex.one);
 
-mobius.prototype.multiply = function(m1, m2) {
+mobius.prototype.multiply = function(m2, m1) {
     return new mobius(
         complex.prototype.add(complex.prototype.multiply(m2.a, m1.a), complex.prototype.multiply(m2.b, m1.c)), 
         complex.prototype.add(complex.prototype.multiply(m2.a, m1.b), complex.prototype.multiply(m2.b, m1.d)), 
@@ -144,7 +157,7 @@ mobius.prototype.createDiscAutomorphism = function(a, phi) {
 };
 
 mobius.prototype.createDiscTranslation = function(a, b) {
-	return mobius.multiply(mobius.createDiscAutomorphism(b, 0), mobius.createDiscAutomorphism(a, 0).inverse());
+	return mobius.prototype.multiply(mobius.prototype.createDiscAutomorphism(b, 0), mobius.prototype.createDiscAutomorphism(a, 0).inverse());
 };
 
 mobius.prototype.createTranslation = function(tranlsation) {
