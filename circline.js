@@ -1,4 +1,4 @@
-function circline(a, b, c) {
+function Circline(a, b, c) {
 	this.a = a;
 	this.b = b;
 	this.c = c;
@@ -8,140 +8,140 @@ function circline(a, b, c) {
 	}
 }
 
-circline.prototype.create = function(a, b, c) {
-	if (accuracy.prototype.lengthIsZero(a)) {
-		return new line(b, c);
+Circline.create = function(a, b, c) {
+	if (Accuracy.lengthIsZero(a)) {
+		return new Line(b, c);
 	}
 
-	return new circle(a, b, c);
+	return new Circle(a, b, c);
 };
 
-circline.prototype.transform = function(m) {
+Circline.prototype.transform = function(m) {
 	var inverse = m.inverse();
 	//			Mobius hermitian = inverse.Transpose *
-	//			new Mobius(new Complex(circLine.a, 0), circLine.b.Conjugate, circLine.b, new Complex(circLine.c, 0)) *
+	//			new Mobius(new Complex(Circline.a, 0), Circline.b.Conjugate, Circline.b, new Complex(Circline.c, 0)) *
 	//			inverse.Conjugate;
 	var a = inverse.transpose();
-	var b = new mobius(new complex([this.a, 0]), this.b.conjugate(), this.b, new complex([this.c, 0]));
+	var b = new Mobius(new Complex([this.a, 0]), this.b.conjugate(), this.b, new Complex([this.c, 0]));
 	var c = inverse.conjugate();	
 	
-	var hermitian = mobius.prototype.multiply(
-		mobius.prototype.multiply(
+	var hermitian = Mobius.multiply(
+		Mobius.multiply(
 			a, 
 			b
 		),
 		c
 	);
-	return circline.prototype.create(hermitian.a.data[0], hermitian.c, hermitian.d.data[0]);
+	return Circline.create(hermitian.a.data[0], hermitian.c, hermitian.d.data[0]);
 };
 
-circline.prototype.equals = function(cl) {
-	return accuracy.lengthEquals(this.a, cl.a) && complex.equals(this.b, cl.b) && accuracy.lengthEquals(c, cl.c);
+Circline.prototype.equals = function(circline) {
+	return accuracy.lengthEquals(this.a, circline.a) && Complex.equals(this.b, circline.b) && accuracy.lengthEquals(c, circline.c);
 };
 
-circline.prototype.isPointOnLeft = function(p) {
-	return (this.a * p.modulusSquared + complex.add(complex.multiply(this.b.conjugate(), p),
-	complex.multiply(this.b , p.conjugate)).data[0] + this.c + Accuracy.LinearTolerance) > 0;
+Circline.prototype.isPointOnLeft = function(point) {
+	return (this.a * point.modulusSquared + Complex.add(Complex.multiply(this.b.conjugate(), point),
+	Complex.multiply(this.b , point.conjugate)).data[0] + this.c + Accuracy.LinearTolerance) > 0;
 };
 
-circline.prototype.containsPoint = function(p) {
-	return accuracy.lengthIsZero(this.a * p.ModulusSquared + complex.add(complex.multiply(this.b.conjugate(), p) , 			complex.multiply(this.b , p.conjugate)).data[0] + c);
+Circline.prototype.containsPoint = function(point) {
+	return accuracy.lengthIsZero(this.a * point.ModulusSquared + Complex.add(Complex.multiply(this.b.conjugate(), point) , 			Complex.multiply(this.b , point.conjugate)).data[0] + c);
 };
 
-circline.prototype.arePointsOnSameSide = function(p1, p2) {
-	if (complex.equals(p1, p2))
+Circline.prototype.arePointsOnSameSide = function(p1, p2) {
+	if (Complex.equals(p1, p2))
 		return true;
 
-	return circline.isPointOnLeft(p1) ^ circline.isPointOnLeft(p2);
+	return Circline.isPointOnLeft(p1) ^ Circline.isPointOnLeft(p2);
 };
 
-circline.prototype.conjugate = function() {
-	return circline.prototype.create(this.a, this.b.conjugate(), this.c);
+Circline.prototype.conjugate = function() {
+	return Circline.create(this.a, this.b.conjugate(), this.c);
 };
 
-function circle(a, b, c) {
-//	circline.call(this);
+function Circle(a, b, c) {
+//	Circline.call(this);
 	this.a = 1;
 	this.b = b.scale(1/a);
 	this.c = c/a;
 }
 
-circle.prototype = new circline();
-circle.prototype.constructor = circle;
+Circle.prototype = new Circline();
+Circle.prototype.constructor = Circle;
 
-circle.prototype.create = function(center, radius) {
-	return new circle(1, center.negative(), center.modulusSquared() - radius * radius);
+Circle.prototype.create = function(center, radius) {
+	return new Circle(1, center.negative(), center.modulusSquared() - radius * radius);
 };
 
-circle.unit = circle.prototype.create(complex.zero, 1);
+Circle.unit = Circle.prototype.create(Complex.zero, 1);
 
-circle.prototype.center = function() {
+Circle.prototype.center = function() {
 	return this.b.negative().scale(1/this.a);
 };
 
-circle.prototype.radiusSquared = function() {
+Circle.prototype.radiusSquared = function() {
 	return this.center().modulusSquared() - this.c / this.a;
 };
 
-circle.prototype.radius = function() {
+Circle.prototype.radius = function() {
 	return Math.sqrt(this.radiusSquared());
 };
 
-circle.prototype.inverse = function() {
+Circle.prototype.inverse = function() {
 	if (accuracy.lengthIsZero((this.center().modulusSquared() - this.radiusSquared()))) {
-		return new line(this.b.negative().conjugate(), 1);
+		return new Line(this.b.negative().conjugate(), 1);
 	}
 
-	return new circle(this.center().modulusSquared() - this.radiusSquared(), this.b.conjugate(), 1);
+	return new Circle(this.center().modulusSquared() - this.radiusSquared(), this.b.conjugate(), 1);
 };
 
-circle.prototype.asMobius = function() {
-	return new mobius(this.center(), new complex([this.radiusSquared() - this.center().modulusSquared(), 0]), complex.one, this.b.conjugate());
+Circle.prototype.asMobius = function() {
+	return new Mobius(this.center(), new Complex([this.radiusSquared() - this.center().modulusSquared(), 0]), Complex.one, this.b.conjugate());
 };
 
-circle.prototype.scale = function(scale) {
-	if (scale.constructor == complex) {
+Circle.prototype.scale = function(scale) {
+	if (scale.constructor == Complex) {
 		scale = scale.modulus;
 	}
 
-	return circle.prototype.create(this.center().scale(scale), this.radius() * scale);
+	return Circle.prototype.create(this.center().scale(scale), this.radius() * scale);
 };
 
-function line(b, c) {
-//	circline.call(this);
+function Line(b, c) {
+//	Circline.call(this);
 	this.a = 0;
 	this.b = b;
 	this.c = c;
 }
 
-line.prototype = new circline();
-line.prototype.constructor = line;
+Line.prototype = new Circline();
+Line.prototype.constructor = Line;
 
-line.prototype.createTwoPoint = function(p1, p2) { 
+Line.createTwoPoint = function(p1, p2) { 
 	dx = p2.data[0] - p1.data[0];
 	dy = p2.data[1] - p1.data[1];
 
-	return line.prototype.createFromEquation(-dy, dx, dx * p1.data[1] - dy * p1.data[0]);
+	return Line.createFromEquation(-dy, dx, dx * p1.data[1] - dy * p1.data[0]);
 };
 
-// Creates a linear circle a * x + b * y + c = 0 from reals a, b, and c.
-line.prototype.createFromEquation = function(a, b, c) {
-	return new line(new complex([a / 2, b / 2]), c);
+// Creates a linear Circle a * x + b * y + c = 0 from reals a, b, and c.
+Line.createFromEquation = function(a, b, c) {
+	return new Line(new Complex([a / 2, b / 2]), c);
 };
 
-line.prototype.createPointAngle = function(point, angle) { 
-	return line.prototype.createTwoPoint(point, complex.prototype.subtract(point, complex.prototype.createPolar(1, angle)));
+Line.createPointAngle = function(point, angle) { 
+	return Line.createTwoPoint(point, Complex.subtract(point, Complex.createPolar(1, angle)));
 };
 	
-line.prototype.inverse = function() {
-	if (accuracy.lengthIsZero(c / 1000)) {
-		return new line(this.b.conjugate(), 0);
+Line.prototype.inverse = function() {
+	if (accuracy.lengthIsZero(c / 1000)) {  // TBD test tolerance
+		return new Line(this.b.conjugate(), 0);
 	}
 
-	return new circle(this.b.conjugate.scale(1 / c), this.b.modulus / c);
+	return new Circle(this.b.conjugate.scale(1 / c), this.b.modulus / c);
 };
 
-line.prototype.asMobius = function() {
-	return new mobius(this.b, complex.one, complex.zero, this.b.negative().conjugate());
+Line.prototype.asMobius = function() {
+	return new Mobius(this.b, Complex.one, Complex.zero, this.b.negative().conjugate());
 };
 

@@ -1,17 +1,13 @@
 <html>
-
-	<head>
-		<title>Poincare' Kaleidoscope</title>
-		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-
-		<script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
-		<script type="text/javascript" src="webgl-utils.js"></script>
-
-		<script type="text/javascript" src="complex.js"></script>
-		<script type="text/javascript" src="circline.js"></script>
-		<script type="text/javascript" src="disc.js"></script>
-
-		<script id="shader-fs" type="x-shader/x-fragment">
+<head>
+    <title>Poincare' Kaleidoscope</title>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+    <script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
+    <script type="text/javascript" src="webgl-utils.js"></script>
+    <script type="text/javascript" src="Complex.js"></script>
+    <script type="text/javascript" src="Circline.js"></script>
+    <script type="text/javascript" src="disc.js"></script>
+    <script id="shader-fs" type="x-shader/x-fragment">
 			precision mediump float;
 
 			varying vec2 vTextureCoord;
@@ -22,9 +18,8 @@
 			void main(void) {
 			gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t) - vTextureOffset);
 			}
-		</script>
-
-		<script id="shader-vs" type="x-shader/x-vertex">
+    </script>
+    <script id="shader-vs" type="x-shader/x-vertex">
 			attribute vec3 aVertexPosition;
 			attribute vec2 aTextureCoord;
 
@@ -61,319 +56,335 @@
 			gl_Position = uPMatrix * uMVMatrix * vec4(pos, 0.0, 1.0);
 			vTextureCoord = aTextureCoord;
 			}
-		</script>
+    </script>
+    <script type="text/javascript">
+        var gl;
 
-		<script type="text/javascript">
-			var gl;
+        function initGL(canvas) {
+            try {
+                gl = doc.canvas.getContext("experimental-webgl");
+                gl.viewportWidth = canvas.width;
+                gl.viewportHeight = canvas.height;
+            } catch (e) {
+            }
+            if (!gl) {
+                //O
+                alert("Could not initialise WebGL, sorry :-(");
+            }
+        }
 
-			function initGL(canvas) {
-				try {
-					gl = canvas.getContext("experimental-webgl");
-					gl.viewportWidth = canvas.width;
-					gl.viewportHeight = canvas.height;
-				} catch (e) {
-				}
-				if (!gl) { O
-					alert("Could not initialise WebGL, sorry :-(");
-				}
-			}
+        function getShader(gl, id) {
+            var shaderScript = document.getElementById(id);
+            if (!shaderScript) {
+                return null;
+            }
 
-			function getShader(gl, id) {
-				var shaderScript = document.getElementById(id);
-				if (!shaderScript) {
-					return null;
-				}
+            var str = "";
+            var k = shaderScript.firstChild;
+            while (k) {
+                if (k.nodeType == 3) {
+                    str += k.textContent;
+                }
+                k = k.nextSibling;
+            }
 
-				var str = "";
-				var k = shaderScript.firstChild;
-				while (k) {
-					if (k.nodeType == 3) {
-						str += k.textContent;
-					}
-					k = k.nextSibling;
-				}
+            var shader;
+            if (shaderScript.type == "x-shader/x-fragment") {
+                shader = gl.createShader(gl.FRAGMENT_SHADER);
+            } else if (shaderScript.type == "x-shader/x-vertex") {
+                shader = gl.createShader(gl.VERTEX_SHADER);
+            } else {
+                return null;
+            }
 
-				var shader;
-				if (shaderScript.type == "x-shader/x-fragment") {
-					shader = gl.createShader(gl.FRAGMENT_SHADER);
-				} else if (shaderScript.type == "x-shader/x-vertex") {
-					shader = gl.createShader(gl.VERTEX_SHADER);
-				} else {
-					return null;
-				}
+            gl.shaderSource(shader, str);
+            gl.compileShader(shader);
 
-				gl.shaderSource(shader, str);
-				gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                alert(gl.getShaderInfoLog(shader));
+                return null;
+            }
 
-				if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-					alert(gl.getShaderInfoLog(shader));
-					return null;
-				}
+            return shader;
+        }
 
-				return shader;
-			}
+        var shaderProgram;
 
-			var shaderProgram;
+        function initShaders() {
+            var fragmentShader = getShader(gl, "shader-fs");
+            var vertexShader = getShader(gl, "shader-vs");
 
-			function initShaders() {
-				var fragmentShader = getShader(gl, "shader-fs");
-				var vertexShader = getShader(gl, "shader-vs");
+            shaderProgram = gl.createProgram();
+            gl.attachShader(shaderProgram, vertexShader);
+            gl.attachShader(shaderProgram, fragmentShader);
+            gl.linkProgram(shaderProgram);
 
-				shaderProgram = gl.createProgram();
-				gl.attachShader(shaderProgram, vertexShader);
-				gl.attachShader(shaderProgram, fragmentShader);
-				gl.linkProgram(shaderProgram);
+            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                alert("Could not initialise shaders");
+            }
 
-				if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-					alert("Could not initialise shaders");
-				}
+            gl.useProgram(shaderProgram);
 
-				gl.useProgram(shaderProgram);
+            shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+            gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
-				shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-				gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+            shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+            gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
 
-				shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-				gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+            shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+            shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+            shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
+            shaderProgram.textureOffset = gl.getUniformLocation(shaderProgram, "vTextureOffset");
+            shaderProgram.MobiusA = gl.getUniformLocation(shaderProgram, "uMobiusA");
+            shaderProgram.MobiusB = gl.getUniformLocation(shaderProgram, "uMobiusB");
+            shaderProgram.MobiusC = gl.getUniformLocation(shaderProgram, "uMobiusC");
+            shaderProgram.MobiusD = gl.getUniformLocation(shaderProgram, "uMobiusD");
+        }
 
-				shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-				shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
-				shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
-				shaderProgram.textureOffset = gl.getUniformLocation(shaderProgram, "vTextureOffset");
-				shaderProgram.mobiusA = gl.getUniformLocation(shaderProgram, "uMobiusA");
-				shaderProgram.mobiusB = gl.getUniformLocation(shaderProgram, "uMobiusB");
-				shaderProgram.mobiusC = gl.getUniformLocation(shaderProgram, "uMobiusC");
-				shaderProgram.mobiusD = gl.getUniformLocation(shaderProgram, "uMobiusD");
-			}
+        var d;
+        function initGeometry() {
+            //	var c = Circle.prototype.create(Complex.one, 1);
+            p = parseInt(doc.pField.value);
+            q = parseInt(doc.qField.value);
+            d = new disc(new Region(p, q), "", true);
+        }
 
-			var d;
-			function initGeometry() {
-				//	var c = circle.prototype.create(complex.one, 1);
-				d = new disc(new region(5, 5), "", true);
-			}
+        var mvMatrix = mat4.create();
+        var mvMatrixStack = [];
+        var pMatrix = mat4.create();
 
-			var mvMatrix = mat4.create();
-			var mvMatrixStack = [];
-			var pMatrix = mat4.create();
+        function mvPushMatrix() {
+            var copy = mat4.create();
+            mat4.set(mvMatrix, copy);
+            mvMatrixStack.push(copy);
+        }
 
-			function mvPushMatrix() {
-				var copy = mat4.create();
-				mat4.set(mvMatrix, copy);
-				mvMatrixStack.push(copy);
-			}
+        function mvPopMatrix() {
+            if (mvMatrixStack.length == 0) {
+                throw "Invalid popMatrix!";
+            }
+            mvMatrix = mvMatrixStack.pop();
+        }
 
-			function mvPopMatrix() {
-				if (mvMatrixStack.length == 0) {
-					throw "Invalid popMatrix!";
-				}
-				mvMatrix = mvMatrixStack.pop();
-			}
+        function setMatrixUniforms() {
+            gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+            gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+        }
 
-			function setMatrixUniforms() {
-				gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-				gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
-			}
+        function initBuffers() {
+        }
 
-			function initBuffers() {
-			}
+        var textureOffset = Complex.zero;
+        //	var motionOffset = Complex.zero;
+        var motionIncrement = Complex.zero;
+        var motionMobius = Mobius.identity;
+        //	var angleOffset = 0;
+        var angleIncrement = 0;
 
-			var textureOffset = complex.zero;
-		//	var motionOffset = complex.zero;
-			var motionIncrement = complex.zero;
-			var motionMobius = mobius.identity;
-		//	var angleOffset = 0;
-			var angleIncrement = 0;
+        function drawScene() {
+            shaderProgram.MobiusA
+            gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-			function drawScene() {
-				shaderProgram.mobiusA
-				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            //      mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+            mat4.ortho(-1, 1, -1, 1, 0.1, 100.0, pMatrix);
+            mat4.identity(mvMatrix);
+            mat4.translate(mvMatrix, [0.0, 0.0, -5.0]);
 
-				//      mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
-				mat4.ortho(-1, 1, -1, 1, 0.1, 100.0, pMatrix);
-				mat4.identity(mvMatrix);
-				mat4.translate(mvMatrix, [0.0, 0.0, -5.0]);
+            setMatrixUniforms();
 
-				setMatrixUniforms();
+            gl.uniform2fv(shaderProgram.textureOffset, textureOffset.data)
+            gl.uniform2fv(shaderProgram.MobiusA, motionMobius.a.data)
+            gl.uniform2fv(shaderProgram.MobiusB, motionMobius.b.data)
+            gl.uniform2fv(shaderProgram.MobiusC, motionMobius.c.data)
+            gl.uniform2fv(shaderProgram.MobiusD, motionMobius.d.data)
 
-				gl.uniform2fv(shaderProgram.textureOffset, textureOffset.data)
-				gl.uniform2fv(shaderProgram.mobiusA, motionMobius.a.data)
-				gl.uniform2fv(shaderProgram.mobiusB, motionMobius.b.data)
-				gl.uniform2fv(shaderProgram.mobiusC, motionMobius.c.data)
-				gl.uniform2fv(shaderProgram.mobiusD, motionMobius.d.data)
+            d.draw(motionMobius, textureOffset, shaderProgram);
+        }
 
-				d.draw(motionMobius, textureOffset, shaderProgram);
-			}
+        var startTime = 0;
+        var lastTime = 0;
 
-			var startTime = 0;
-			var lastTime = 0;
+        function animate() {
+            var timeNow = new Date().getTime();
+            if (startTime != 0) {
+                var elapsed = timeNow - startTime;
+                elapsed *= 0.00001;
 
-			function animate() {
-				var timeNow = new Date().getTime();
-				if (startTime != 0) {
-					var elapsed = timeNow - startTime;
-					elapsed *= 0.00001;
-					
-					sample();
+                sample();
 
-				//	motionOffset = complex.prototype.add(motionOffset, motionIncrement.transform(mobius.prototype.createRotation(-angleOffset)));
-				//	angleOffset += angleIncrement;
-	
-					textureOffset = new complex([Math.cos(3.0 * elapsed), Math.sin(2.0 * elapsed)]);
-					//motionOffset = complex.prototype.createPolar(0.5, elapsed * 100);
-				//	motionMobius = mobius.prototype.multiply(
-				//		mobius.prototype.createRotation(angleOffset),
-				//		mobius.prototype.createDiscAutomorphism(motionOffset, 0)
-				//	);
-				//	motionMobius = mobius.prototype.createDiscAutomorphism(
-				//		motionOffset.transform(mobius.prototype.createRotation(-angleOffset)),						
-				//		angleOffset
-				//	);
-					var motionMobiusIncrement = mobius.prototype.multiply(
-						mobius.prototype.createRotation(angleIncrement),
-						mobius.prototype.createDiscTranslation(complex.zero, motionIncrement)
-					);	
-					
-					motionMobius = mobius.prototype.multiply(
+                textureOffset = new Complex([Math.cos(3.0 * elapsed), Math.sin(2.0 * elapsed)]);
+
+                var motionMobiusIncrement = Mobius.multiply(
+						Mobius.createRotation(angleIncrement),
+						Mobius.createDiscTranslation(Complex.zero, motionIncrement)
+					);
+
+                motionMobius = Mobius.multiply(
 						motionMobiusIncrement,
 						motionMobius
-					);	
-					
-					/*
-					for(var i = 0; i < d.initialFace.edges.length; i++) {
-						var e = d.initialFace.edges[i].transform(motionMobius);
-						if (e.isConvex()) {
-							motionMobius = mobius.prototype.multiply(
-								e.circline.asMobius(),
-								motionMobius.conjugate()
-							);	
-						}
-					}
-					*/
-					
-					var flipEdge;
-					var currentFace = d.initialFace.transform(motionMobius);
-					do {
-						flipEdge = null;
-						flipTrans = mobius.identity;
-						
-						for(var i = 0; i < currentFace.edges.length; i++) {
-							var e = currentFace.edges[i];
-							if (e.isConvex()) {
-								flipEdge = e;
-								break;
-							}
-						}
-		
-						var image;
-						if (flipEdge != null) {
-							flipTrans = mobius.prototype.multiply(flipTrans, flipEdge.circline.asMobius());
-							image = currentFace.conjugate().transform(flipTrans);
-		
-							currentFace = image;
-						}
-		
-					} while (flipEdge != null);
-		
-					// curentFace seems to accumulate rounoff error; create a new one from it's new position
-					var toCenter = mobius.prototype.createDiscAutomorphism(currentFace.center, 0);
-					var angle = currentFace.vertices[0].transform(toCenter).argument();
-					var seedFaceTrans = mobius.prototype.multiply(
-						mobius.prototype.createDiscAutomorphism(currentFace.center, 0),
-						mobius.prototype.createRotation(angle - d.initialFace.vertices[0].argument())
 					);
-					
-					motionMobius = seedFaceTrans;
-				
-					//	textureOffset = complex.create([elapsed, 0.0]);
-				} else {
-					startTime = timeNow;
-				}
-				lastTime = timeNow;
-			}
 
-			function tick() {
-				requestAnimFrame(tick);
-				drawScene();
-				animate();
-			}
-			
-			var isDragging = false;
-			var isDraggingAngle = false;
-			var thisMousePos = complex.zero;
-			var initialMousePos = complex.zero;
-			
-			var canvasSize = 800;
-			function handleMouseDown(event) {
-				isDragging = true;
-				thisMousePos = mousePos(event)
-				if (thisMousePos.modulusSquared() > 0.98) {
-					isDraggingAngle = true;
-				}
+                var flipEdge;
+                var currentFace = d.initialFace.transform(motionMobius);
+                do {
+                    flipEdge = null;
+                    flipTrans = Mobius.identity;
 
-				initialMousePos = thisMousePos;			
-			}
+                    for (var i = 0; i < currentFace.edges.length; i++) {
+                        var e = currentFace.edges[i];
+                        if (e.isConvex()) {
+                            flipEdge = e;
+                            break;
+                        }
+                    }
 
-			function handleMouseUp(event) {
-				isDragging = false;
-				isDraggingAngle = false;
-			}
+                    var image;
+                    if (flipEdge != null) {
+                        flipTrans = Mobius.multiply(flipTrans, flipEdge.Circline.asMobius());
+                        image = currentFace.conjugate().transform(flipTrans);
 
-			function handleMouseMove() {
-				if (!isDragging) {
-					return;
-				}
-				
-				thisMousePos = mousePos();
-			}
+                        currentFace = image;
+                    }
 
-			function sample() {
-				if (!isDragging) {
-					return;
-				}
+                } while (flipEdge != null);
 
-				if (isDraggingAngle) {
-					angleIncrement = thisMousePos.argument() - initialMousePos.argument();
-				} else {
-					if (thisMousePos.modulusSquared() > 0.98) {
-						thisMousePos = complex.prototype.createPolar(0.98, thisMousePos.argument());
-					}
-					motionIncrement = complex.prototype.subtract(thisMousePos, initialMousePos);
-				}
-				
-				initialMousePos = thisMousePos;
-			}
-			
-			function mousePos() {
-			    
-				return new complex([2 * window.event.clientX / canvasSize - 1, 1 - 2 * window.event.clientY / canvasSize]);
-			}
+                // curentFace seems to accumulate rounoff error; create a new one from it's new position
+                var toCenter = Mobius.createDiscAutomorphism(currentFace.center, 0);
+                var angle = currentFace.vertices[0].transform(toCenter).argument();
+                var seedFaceTrans = Mobius.multiply(
+						Mobius.createDiscAutomorphism(currentFace.center, 0),
+						Mobius.createRotation(angle - d.initialFace.vertices[0].argument())
+					);
 
-			function webGLStart() {
-				var canvas = document.getElementById("canvas");
-				initGL(canvas);
-				initShaders();
-				initGeometry();
-				initBuffers();
+                motionMobius = seedFaceTrans;
 
-				gl.clearColor(0.0, 0.0, 0.0, 1.0);
-				gl.enable(gl.DEPTH_TEST);
+                //	textureOffset = Complex.create([elapsed, 0.0]);
+            } else {
+                startTime = timeNow;
+            }
+            lastTime = timeNow;
+        }
 
-				canvas.onmousedown = handleMouseDown;
-				document.onmouseup = handleMouseUp;
-				document.onmousemove = handleMouseMove;
-		//		document.onmouseover = handleMouseMove;
+        function tick() {
+            requestAnimFrame(tick);
 
-				tick();
-			}
+            var startTime = new Date().getTime();
+            drawScene();
+            doc.framerate.innerHTML = new Date().getTime() - startTime;
 
-		</script>
+            animate();
+        }
 
-	</head>
+        var isDragging = false;
+        var isDraggingAngle = false;
+        var thisMousePos = Complex.zero;
+        var initialMousePos = Complex.zero;
 
-	<body onload="webGLStart();" bgcolor="111111">
-		<canvas id="canvas" style="border: none;" width="800" height="800"></canvas>
+        var canvasSize = 800;
+        function handleMouseDown(event) {
+            isDragging = true;
+            thisMousePos = mousePos(event)
+            if (thisMousePos.modulusSquared() > 0.98) {
+                isDraggingAngle = true;
+            }
 
-		<br/>
+            initialMousePos = thisMousePos;
+        }
 
+        function handleMouseUp(event) {
+            isDragging = false;
+            isDraggingAngle = false;
+        }
+
+        function handleMouseMove() {
+            if (!isDragging) {
+                return;
+            }
+
+            thisMousePos = mousePos();
+        }
+
+        function sample() {
+            if (!isDragging) {
+                return;
+            }
+
+            if (isDraggingAngle) {
+                angleIncrement = thisMousePos.argument() - initialMousePos.argument();
+            } else {
+                if (thisMousePos.modulusSquared() > 0.98) {
+                    thisMousePos = Complex.createPolar(0.98, thisMousePos.argument());
+                }
+                motionIncrement = Complex.subtract(thisMousePos, initialMousePos);
+            }
+
+            initialMousePos = thisMousePos;
+        }
+
+        function mousePos() {
+            return new Complex([2 * window.event.clientX / canvasSize - 1, 1 - 2 * window.event.clientY / canvasSize]);
+        }
+
+        function reset() {
+            var startTime = new Date().getTime();
+            initGeometry();
+            doc.output.innerHTML = new Date().getTime() - startTime;
+
+            initBuffers();
+        }
+
+        var doc;
+        function webGLStart() {
+            doc = new doc();
+            initGL(doc.canvas);
+            initShaders();
+
+            reset();
+
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.enable(gl.DEPTH_TEST);
+
+            canvas.onmousedown = handleMouseDown;
+            document.onmouseup = handleMouseUp;
+            document.onmousemove = handleMouseMove;
+
+            tick();
+        }
+
+        function doc() {
+            this.canvas = document.getElementById("canvas");
+            this.output = document.getElementById("output");
+            this.framerate = document.getElementById("framerate");
+            this.pField = document.getElementById("p");
+            this.qField = document.getElementById("q");
+            this.resetButton = document.getElementById("reset");
+            this.resetButton.onclick = reset;
+        }
+
+    </script>
+    <style type="text/css">
+        body
+        {
+            background-color: #000;
+            font-family: 'Helvetica Neue' , Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+            font-family: 'Doppio One' , 'Helvetica Neue' , Helvetica, Arial, sans-serif;
+            margin: 0px;
+            padding: 0px;
+        }
+    </style>
+</head>
+<body onload="webGLStart();">
+    <canvas id="canvas" style="border: none;" width="800" height="800"></canvas>
+    <p id="framerate"></p>
+    <p id="output"></p>
+    <p>
+        <input type='text' id='p' value='5' size='5' />
+        <input type='text' id='q' value='5' size='5' />
+        <input type='button' id='reset' value="reset" />
+    </p>
+</body>
 </html>
