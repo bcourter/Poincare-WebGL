@@ -16,8 +16,8 @@ Circline.create = function(a, b, c) {
 	return new Circle(a, b, c);
 };
 
-Circline.prototype.transform = function(m) {
-	var inverse = m.inverse();
+Circline.prototype.transform = function(mobius) {
+	var inverse = mobius.inverse();
 	//			Mobius hermitian = inverse.Transpose *
 	//			new Mobius(new Complex(Circline.a, 0), Circline.b.Conjugate, Circline.b, new Complex(Circline.c, 0)) *
 	//			inverse.Conjugate;

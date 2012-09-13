@@ -58,10 +58,10 @@ Complex.divide = function(a, b) {
 	return new Complex([(a.data[0] * b.data[0] + a.data[1] * b.data[1]) / automorphy, (a.data[1] * b.data[0] - a.data[0] * b.data[1]) / automorphy]);
 };
 
-Complex.transformArray = function (original, m) {
+Complex.transformArray = function (original, mobius) {
     var transformed = [original.length];
     for (i in original) {
-        transformed[i] = original[i].transform(m);
+        transformed[i] = original[i].transform(mobius);
     }
 
     return transformed;
@@ -104,8 +104,8 @@ Complex.prototype.negative = function() {
 	return new Complex([-this.data[0], -this.data[1]]);
 };
 
-Complex.prototype.transform = function(m) {
-	return Complex.divide(Complex.add(Complex.multiply(m.a, this), m.b), Complex.add(Complex.multiply(m.c, this), m.d));
+Complex.prototype.transform = function(mobius) {
+	return Complex.divide(Complex.add(Complex.multiply(mobius.a, this), mobius.b), Complex.add(Complex.multiply(mobius.c, this), mobius.d));
 };
 
 Complex.prototype.conjugate = function() {

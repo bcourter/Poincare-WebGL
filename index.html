@@ -141,12 +141,12 @@
             shaderProgram.MobiusD = gl.getUniformLocation(shaderProgram, "uMobiusD");
         }
 
-        var d;
+        var disc;
         function initGeometry() {
             //	var c = Circle.prototype.create(Complex.one, 1);
             p = parseInt(doc.pField.value);
             q = parseInt(doc.qField.value);
-            d = new Disc(new Region(p, q), "", true);
+            disc = new Disc(new Region(p, q), "", true);
         }
 
         var mvMatrix = mat4.create();
@@ -199,7 +199,7 @@
             gl.uniform2fv(shaderProgram.MobiusC, motionMobius.c.data)
             gl.uniform2fv(shaderProgram.MobiusD, motionMobius.d.data)
 
-            d.draw(motionMobius, textureOffset, shaderProgram);
+            disc.draw(motionMobius, textureOffset, shaderProgram);
         }
 
         var startTime = 0;
@@ -226,15 +226,15 @@
 					);
 
                 var flipEdge;
-                var currentFace = d.initialFace.transform(motionMobius);
+                var currentFace = disc.initialFace.transform(motionMobius);
                 do {
                     flipEdge = null;
                     flipTrans = Mobius.identity;
 
                     for (var i = 0; i < currentFace.edges.length; i++) {
-                        var e = currentFace.edges[i];
-                        if (e.isConvex()) {
-                            flipEdge = e;
+                        var edge = currentFace.edges[i];
+                        if (edge.isConvex()) {
+                            flipEdge = edge;
                             break;
                         }
                     }
@@ -254,7 +254,7 @@
                 var angle = currentFace.vertices[0].transform(toCenter).argument();
                 var seedFaceTrans = Mobius.multiply(
 						Mobius.createDiscAutomorphism(currentFace.center, 0),
-						Mobius.createRotation(angle - d.initialFace.vertices[0].argument())
+						Mobius.createRotation(angle - disc.initialFace.vertices[0].argument())
 					);
 
                 motionMobius = seedFaceTrans;
@@ -264,16 +264,18 @@
             lastTime = timeNow;
         }
 
-        var lastTime = new Date().getTime();
+        var lastTickTime = new Date().getTime();
         function tick() {
             requestAnimFrame(tick);
 
             var startTime = new Date().getTime();
             drawScene();
-            var time = new Date().getTime();
-            doc.framerate.innerHTML = "Frame: " + (time - startTime) + " / " + (time - lastTime);
-                
+            var sceneTime = new Date().getTime();
             animate();
+            var animateTime = new Date().getTime();
+
+            doc.framerate.innerHTML = "draw: " + (sceneTime - startTime) + " animate: " + (animateTime - sceneTime) + " loop: " + (animateTime - lastTickTime);
+            lastTickTime = animateTime;
         }
 
         var isDragging = false;
@@ -336,7 +338,7 @@
 
         var doc;
         function webGLStart() {
-            doc = new doc();
+            doc = new Doc();
             initGL(doc.canvas);
             initShaders();
 
@@ -352,7 +354,7 @@
             tick();
         }
 
-        function doc() {
+        function Doc() {
             this.canvas = document.getElementById("canvas");
             this.output = document.getElementById("output");
             this.framerate = document.getElementById("framerate");
@@ -364,8 +366,7 @@
 
     </script>
     <style type="text/css">
-        body
-        {
+        body {
             background-color: #000;
             font-family: 'Helvetica Neue' , Helvetica, Arial, sans-serif;
             font-size: 15px;

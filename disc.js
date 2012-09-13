@@ -52,7 +52,6 @@ function Face(region, center, vertices, edgeCenters, halfEdges, spines, dualEdge
 }
 
 Face.create = function (region) {
-    var region = region;
     var center = Complex.zero;
     var p = region.p;
     var isFlipped = false;
@@ -111,14 +110,9 @@ Face.create = function (region) {
 
     var face = new Face(region, center, vertices, edgeCenters, halfEdgePoints, spinePoints, dualEdgePoints, interiorPoints, isFlipped);
 
-    var p = region.p;
-
-    var increment = Mobius.createRotation(2 * Math.PI / p);
-    var midvertex = region.p1;
     var edge = new Edge(this, region.c, midvertex, midvertex.transform(increment.inverse()));
 
     face.edges = [p];
-    var rotation = Mobius.identity;
     for (var i = 0; i < p; i++) {
         face.edges[i] = edge.transform(rotation);
         rotation = Mobius.multiply(rotation, increment);
@@ -309,13 +303,13 @@ Face.prototype.initBuffers = function (previous) {
     }
 };
 
-Face.prototype.transform = function (m) {
+Face.prototype.transform = function (mobius) {
     var p = this.region.p;
     var edges = [p];
 
-    var center = this.center.transform(m);
-    var vertices = Complex.transformArray(this.vertices, m);
-    var edgeCenters = Complex.transformArray(this.edgeCenters, m);
+    var center = this.center.transform(mobius);
+    var vertices = Complex.transformArray(this.vertices, mobius);
+    var edgeCenters = Complex.transformArray(this.edgeCenters, mobius);
 
     var halfEdges = [2 * p];
     var spines = [p];
@@ -323,14 +317,14 @@ Face.prototype.transform = function (m) {
     var interiors = [2 * p];
 
     for (var i = 0; i < p; i++) {
-        edges[i] = this.edges[i].transform(m);
+        edges[i] = this.edges[i].transform(mobius);
 
-        halfEdges[i] = Complex.transformArray(this.halfEdges[i], m);
-        halfEdges[i + p] = Complex.transformArray(this.halfEdges[i + p], m);
-        spines[i] = Complex.transformArray(this.spines[i], m);
-        dualEdges[i] = Complex.transformArray(this.dualEdges[i], m);
-        interiors[i] = Complex.transformArray(this.interiors[i], m);
-        interiors[i + p] = Complex.transformArray(this.interiors[i + p], m);
+        halfEdges[i] = Complex.transformArray(this.halfEdges[i], mobius);
+        halfEdges[i + p] = Complex.transformArray(this.halfEdges[i + p], mobius);
+        spines[i] = Complex.transformArray(this.spines[i], mobius);
+        dualEdges[i] = Complex.transformArray(this.dualEdges[i], mobius);
+        interiors[i] = Complex.transformArray(this.interiors[i], mobius);
+        interiors[i + p] = Complex.transformArray(this.interiors[i + p], mobius);
     }
 
     return Face.createFromExisting(this, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, this.isFlipped);
@@ -388,8 +382,8 @@ function Edge(Face, Circline, start, end) {
     this.end = end;
 };
 
-Edge.prototype.transform = function (m) {
-    return new Edge(this.Face, this.Circline.transform(m), this.start.transform(m), this.end.transform(m));
+Edge.prototype.transform = function (mobius) {
+    return new Edge(this.Face, this.Circline.transform(mobius), this.start.transform(mobius), this.end.transform(mobius));
 };
 
 Edge.prototype.conjugate = function () {
@@ -451,15 +445,15 @@ Disc.prototype.initFaces = function () {
     var count = 1;
     var minDist = 1;
     while (faceQueue.length > 0) {
-        f = faceQueue.pop();
+        face = faceQueue.pop();
 
-        for (var i in f.edges) {
-            var e = f.edges[i];
-            if (e.isConvex()) {
+        for (var i = 0; i < face.edges.length; i++ ) {
+            var edge = face.edges[i];
+            if (edge.isConvex()) {
                 continue;
             }
 
-            var c = e.Circline;
+            var c = edge.Circline;
             if (c.constructor != Circle) {
                 continue;
             }
@@ -468,8 +462,8 @@ Disc.prototype.initFaces = function () {
                 continue;
             }
 
-            var m = e.Circline.asMobius();
-            var image = f.conjugate().transform(m);
+            var mobius = edge.Circline.asMobius();
+            var image = face.conjugate().transform(mobius);
             if (isNaN(image.center.data[0])) {
                 alert();
                 continue;
@@ -481,7 +475,7 @@ Disc.prototype.initFaces = function () {
 
             var isDone = false;
 
-            for (var j in faceCenters) {
+            for (var j = 0; j < faceCenters.length; j++) {
                 if (Complex.prototype.equals(faceCenters[j], image.center)) {
                     isDone = true;
                     break;
@@ -517,7 +511,7 @@ Disc.prototype.initTextures = function () {
 };
 
 Disc.prototype.draw = function (motionMobius, textureOffset, shaderProgram) {
-    for (var i in this.faces) {
+    for (var i = 0; i < this.faces.length; i++ ) {
         this.faces[i].draw(motionMobius, textureOffset, texture, shaderProgram);
     }
 }
