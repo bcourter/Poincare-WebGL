@@ -437,7 +437,8 @@ function Disc(region, bitmap, isInverting) {
 }
 
 Disc.prototype.initFaces = function () {
-    var circleLimit = 0.990;
+    var circleLimit = 0.999;
+    var radiusLimit = 1E-4;
     var seedFace = this.initialFace;
     var faceQueue = [seedFace];
     var faceCenters = [seedFace.center];
@@ -447,7 +448,7 @@ Disc.prototype.initFaces = function () {
     while (faceQueue.length > 0) {
         face = faceQueue.pop();
 
-        for (var i = 0; i < face.edges.length; i++ ) {
+        for (var i = 0; i < face.edges.length; i++) {
             var edge = face.edges[i];
             if (edge.isConvex()) {
                 continue;
@@ -458,7 +459,7 @@ Disc.prototype.initFaces = function () {
                 continue;
             }
 
-            if (c.radiusSquared() < 1.5E-4) {
+            if (c.radiusSquared() < radiusLimit) {
                 continue;
             }
 
@@ -476,7 +477,7 @@ Disc.prototype.initFaces = function () {
             var isDone = false;
 
             for (var j = 0; j < faceCenters.length; j++) {
-                if (Complex.prototype.equals(faceCenters[j], image.center)) {
+                if (Complex.equals(faceCenters[j], image.center)) {
                     isDone = true;
                     break;
                 }

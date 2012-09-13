@@ -84,8 +84,8 @@ Complex.prototype.scale = function(s) {
 	return new Complex([this.data[0] * s, this.data[1] * s]);
 };
 
-Complex.prototype.equals = function(a, b) {
-	return Complex.subtract(a, b).modulusSquared() < 0.000001;
+Complex.equals = function(a, b) {
+	return Complex.subtract(a, b).modulusSquared() < this.linearTolerance * this.linearTolerance;
 };
 
 Complex.prototype.modulus = function() {

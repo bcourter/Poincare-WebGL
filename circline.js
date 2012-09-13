@@ -134,7 +134,7 @@ Line.createPointAngle = function(point, angle) {
 };
 	
 Line.prototype.inverse = function() {
-	if (accuracy.lengthIsZero(c / 1000)) {  // TBD test tolerance
+	if (accuracy.lengthIsZero(c / 1)) {  
 		return new Line(this.b.conjugate(), 0);
 	}
 
