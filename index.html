@@ -6,7 +6,7 @@
     <script type="text/javascript" src="webgl-utils.js"></script>
     <script type="text/javascript" src="Complex.js"></script>
     <script type="text/javascript" src="Circline.js"></script>
-    <script type="text/javascript" src="disc.js"></script>
+    <script type="text/javascript" src="Disc.js"></script>
     <script id="shader-fs" type="x-shader/x-fragment">
 			precision mediump float;
 
@@ -146,7 +146,7 @@
             //	var c = Circle.prototype.create(Complex.one, 1);
             p = parseInt(doc.pField.value);
             q = parseInt(doc.qField.value);
-            d = new disc(new Region(p, q), "", true);
+            d = new Disc(new Region(p, q), "", true);
         }
 
         var mvMatrix = mat4.create();
@@ -258,21 +258,21 @@
 					);
 
                 motionMobius = seedFaceTrans;
-
-                //	textureOffset = Complex.create([elapsed, 0.0]);
             } else {
                 startTime = timeNow;
             }
             lastTime = timeNow;
         }
 
+        var lastTime = new Date().getTime();
         function tick() {
             requestAnimFrame(tick);
 
             var startTime = new Date().getTime();
             drawScene();
-            doc.framerate.innerHTML = new Date().getTime() - startTime;
-
+            var time = new Date().getTime();
+            doc.framerate.innerHTML = "Frame: " + (time - startTime) + " / " + (time - lastTime);
+                
             animate();
         }
 
@@ -329,7 +329,7 @@
         function reset() {
             var startTime = new Date().getTime();
             initGeometry();
-            doc.output.innerHTML = new Date().getTime() - startTime;
+            doc.output.innerHTML = "Initialization: " + (new Date().getTime() - startTime);
 
             initBuffers();
         }
@@ -379,8 +379,10 @@
 </head>
 <body onload="webGLStart();">
     <canvas id="canvas" style="border: none;" width="800" height="800"></canvas>
-    <p id="framerate"></p>
-    <p id="output"></p>
+    <p id="framerate">
+    </p>
+    <p id="output">
+    </p>
     <p>
         <input type='text' id='p' value='5' size='5' />
         <input type='text' id='q' value='5' size='5' />
