@@ -164,7 +164,7 @@ Face.prototype.initBuffers = function (previous) {
 
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
     this.vertexBuffer.itemSize = 2;
-    this.vertexBuffer.numItems = vertices.length; shaderProgram.MobiusA
+    this.vertexBuffer.numItems = vertices.length;
 
     if (previous != null) {
         this.textureBuffer = previous.textureBuffer;
@@ -358,6 +358,8 @@ Face.prototype.conjugate = function () {
 };
 
 Face.prototype.draw = function (motionMobius, textureOffset, texture, shaderProgram) {
+    gl.useProgram(mobiusShaderProgram);
+
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
     gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, this.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -400,6 +402,9 @@ Edge.prototype.isConvex = function () {
 };
 
 function Disc(region, bitmap, isInverting) {
+    this.circleLimit = 0.999;
+    this.radiusLimit = 1E-4;
+
     this.region = region;
     this.isInverting = isInverting;
 
@@ -437,8 +442,6 @@ function Disc(region, bitmap, isInverting) {
 }
 
 Disc.prototype.initFaces = function () {
-    var circleLimit = 0.999;
-    var radiusLimit = 1E-4;
     var seedFace = this.initialFace;
     var faceQueue = [seedFace];
     var faceCenters = [seedFace.center];
@@ -459,7 +462,7 @@ Disc.prototype.initFaces = function () {
                 continue;
             }
 
-            if (c.radiusSquared() < radiusLimit) {
+            if (c.radiusSquared() < this.radiusLimit) {
                 continue;
             }
 
@@ -470,7 +473,7 @@ Disc.prototype.initFaces = function () {
                 continue;
             }
 
-            if (image.center.modulusSquared() > circleLimit) {
+            if (image.center.modulusSquared() > this.circleLimit) {
                 continue;
             }
 
@@ -511,9 +514,49 @@ Disc.prototype.initTextures = function () {
     texture.image.src = "nehe.gif";
 };
 
-Disc.prototype.draw = function (motionMobius, textureOffset, shaderProgram) {
-    for (var i = 0; i < this.faces.length; i++ ) {
-        this.faces[i].draw(motionMobius, textureOffset, texture, shaderProgram);
+Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram) {
+    gl.useProgram(mobiusShaderProgram);
+    gl.uniform2fv(mobiusShaderProgram.textureOffset, textureOffset.data)
+    gl.uniform2fv(mobiusShaderProgram.mobiusA, motionMobius.a.data)
+    gl.uniform2fv(mobiusShaderProgram.mobiusB, motionMobius.b.data)
+    gl.uniform2fv(mobiusShaderProgram.mobiusC, motionMobius.c.data)
+    gl.uniform2fv(mobiusShaderProgram.mobiusD, motionMobius.d.data)
+
+    for (var i = 0; i < this.faces.length; i++) {
+        this.faces[i].draw(motionMobius, textureOffset, texture, mobiusShaderProgram);
     }
+
+ //   var thickness = 20 * (1 - this.circleLimit);
+    var width = 0.03;
+    this.drawCircleGradient([0.5, 0.5, 0.5, 0], [0.5, 0.5, 0.5, 1], 1 - width, 1, circleGradientShaderProgram);
+    var thickness = 0.005;
+    this.drawCircleGradient([1, 1, 1, 0], [1, 1, 1, 1], 1 - thickness / 2, 1, circleGradientShaderProgram);
+    this.drawCircleGradient([1, 1, 1, 1], [1, 1, 1, 0], 1, 1 + thickness / 2, circleGradientShaderProgram);
 }
 
+Disc.prototype.drawCircleGradient = function (color0, color1, r0, r1, circleGradientShaderProgram) {
+    gl.useProgram(circleGradientShaderProgram);
+    gl.uniform4fv(circleGradientShaderProgram.color0, color0);
+    gl.uniform4fv(circleGradientShaderProgram.color1, color1);
+    gl.uniform1f(circleGradientShaderProgram.r0, r0);
+    gl.uniform1f(circleGradientShaderProgram.r1, r1);
+
+    gl.useProgram(circleGradientShaderProgram);
+
+    var squareVertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+    vertices = [
+             1.0, 1.0, 0,
+            -1.0, 1.0, 0,
+             1.0, -1.0, 0,
+            -1.0, -1.0, 0
+        ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    squareVertexPositionBuffer.itemSize = 3;
+    squareVertexPositionBuffer.numItems = 4;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+    gl.vertexAttribPointer(circleGradientShaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
+}

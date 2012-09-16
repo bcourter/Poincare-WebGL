@@ -7,24 +7,10 @@
     <script type="text/javascript" src="Complex.js"></script>
     <script type="text/javascript" src="Circline.js"></script>
     <script type="text/javascript" src="Disc.js"></script>
-    <script id="shader-fs" type="x-shader/x-fragment">
-			precision mediump float;
-
-			varying vec2 vTextureCoord;
-
-			uniform sampler2D uSampler;
-			uniform vec2 vTextureOffset;
-
-			void main(void) {
-			gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t) - vTextureOffset);
-			}
-    </script>
-    <script id="shader-vs" type="x-shader/x-vertex">
+    <script id="shader-mobius-vertex" type="x-shader/x-vertex">
 			attribute vec3 aVertexPosition;
 			attribute vec2 aTextureCoord;
 
-			uniform mat4 uMVMatrix;
-			uniform mat4 uPMatrix;
 			uniform vec2 uMobiusA;
 			uniform vec2 uMobiusB;
 			uniform vec2 uMobiusC;
@@ -44,17 +30,57 @@
 			}
 
 			void main(void) {
-			//  gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-			pos.x = aVertexPosition.x;
-			pos.y = aVertexPosition.y;
+			    pos.x = aVertexPosition.x;
+			    pos.y = aVertexPosition.y;
 
-			pos = cDivide(
-			cMultiply(uMobiusA, pos) + uMobiusB,
-			cMultiply(uMobiusC, pos) + uMobiusD
-			);
+			    pos = cDivide(
+			    cMultiply(uMobiusA, pos) + uMobiusB,
+			    cMultiply(uMobiusC, pos) + uMobiusD
+			    );
 
-			gl_Position = uPMatrix * uMVMatrix * vec4(pos, 0.0, 1.0);
-			vTextureCoord = aTextureCoord;
+			    gl_Position =  vec4(pos, 0.0, 1.0);
+			    vTextureCoord = aTextureCoord;
+			}
+    </script>
+    <script id="shader-mobius-fragment" type="x-shader/x-fragment">
+			precision mediump float;
+
+			varying vec2 vTextureCoord;
+
+			uniform sampler2D uSampler;
+			uniform vec2 vTextureOffset;
+
+			void main(void) {
+			gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t) - vTextureOffset);
+			}
+    </script>
+    <script id="shader-basic-vertex" type="x-shader/x-vertex">
+			attribute vec3 aVertexPosition;
+
+            void main(void) {
+			    gl_Position = vec4(aVertexPosition, 1.0);
+            }
+    </script>
+    <script id="shader-circlegradient-fragment" type="x-shader/x-fragment">
+			precision mediump float;
+
+			uniform vec4 uColor0, uColor1;
+            uniform float uR0, uR1;
+
+			void main(void) {
+                float x = gl_PointCoord.x ;
+                float y = gl_PointCoord.y ;
+                float radiusSquared = x * x + y * y;
+                float r0Squared = uR0 * uR0;
+                float r1Squared = uR1 * uR1;
+
+                if (r0Squared > radiusSquared || radiusSquared > r1Squared) {
+                    gl_FragColor = vec4(0, 0, 0, 0);
+                } else {
+                    float ratio = (radiusSquared - r0Squared) / (r1Squared - r0Squared);
+			        gl_FragColor = mix(uColor0, uColor1, ratio);
+                }
+
 			}
     </script>
     <script type="text/javascript">
@@ -108,37 +134,60 @@
             return shader;
         }
 
-        var shaderProgram;
-
+        var mobiusShaderProgram;
+        var circleGradientShaderProgram;
         function initShaders() {
-            var fragmentShader = getShader(gl, "shader-fs");
-            var vertexShader = getShader(gl, "shader-vs");
+            var mobiusVertexShader = getShader(gl, "shader-mobius-vertex");
+            var mobiusFragmentShader = getShader(gl, "shader-mobius-fragment");
 
-            shaderProgram = gl.createProgram();
-            gl.attachShader(shaderProgram, vertexShader);
-            gl.attachShader(shaderProgram, fragmentShader);
-            gl.linkProgram(shaderProgram);
+            mobiusShaderProgram = gl.createProgram();
+            gl.attachShader(mobiusShaderProgram, mobiusVertexShader);
+            gl.attachShader(mobiusShaderProgram, mobiusFragmentShader);
+            gl.linkProgram(mobiusShaderProgram);
 
-            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            if (!gl.getProgramParameter(mobiusShaderProgram, gl.LINK_STATUS)) {
                 alert("Could not initialise shaders");
             }
 
-            gl.useProgram(shaderProgram);
+            mobiusShaderProgram.vertexPositionAttribute = gl.getAttribLocation(mobiusShaderProgram, "aVertexPosition");
+            gl.enableVertexAttribArray(mobiusShaderProgram.vertexPositionAttribute);
 
-            shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-            gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+            mobiusShaderProgram.textureCoordAttribute = gl.getAttribLocation(mobiusShaderProgram, "aTextureCoord");
+            gl.enableVertexAttribArray(mobiusShaderProgram.textureCoordAttribute);
 
-            shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-            gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+            mobiusShaderProgram.pMatrixUniform = gl.getUniformLocation(mobiusShaderProgram, "uPMatrix");
+            mobiusShaderProgram.mvMatrixUniform = gl.getUniformLocation(mobiusShaderProgram, "uMVMatrix");
+            mobiusShaderProgram.samplerUniform = gl.getUniformLocation(mobiusShaderProgram, "uSampler");
+            mobiusShaderProgram.textureOffset = gl.getUniformLocation(mobiusShaderProgram, "vTextureOffset");
+            mobiusShaderProgram.mobiusA = gl.getUniformLocation(mobiusShaderProgram, "uMobiusA");
+            mobiusShaderProgram.mobiusB = gl.getUniformLocation(mobiusShaderProgram, "uMobiusB");
+            mobiusShaderProgram.mobiusC = gl.getUniformLocation(mobiusShaderProgram, "uMobiusC");
+            mobiusShaderProgram.mobiusD = gl.getUniformLocation(mobiusShaderProgram, "uMobiusD");
 
-            shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-            shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
-            shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
-            shaderProgram.textureOffset = gl.getUniformLocation(shaderProgram, "vTextureOffset");
-            shaderProgram.MobiusA = gl.getUniformLocation(shaderProgram, "uMobiusA");
-            shaderProgram.MobiusB = gl.getUniformLocation(shaderProgram, "uMobiusB");
-            shaderProgram.MobiusC = gl.getUniformLocation(shaderProgram, "uMobiusC");
-            shaderProgram.MobiusD = gl.getUniformLocation(shaderProgram, "uMobiusD");
+            // For circle gradient
+            var basicVertexShader = getShader(gl, "shader-basic-vertex");
+            var circleGradientVertexShader = getShader(gl, "shader-circlegradient-fragment");
+
+            circleGradientShaderProgram = gl.createProgram();
+            gl.attachShader(circleGradientShaderProgram, basicVertexShader);
+            gl.attachShader(circleGradientShaderProgram, circleGradientVertexShader);
+            gl.linkProgram(circleGradientShaderProgram);
+
+            if (!gl.getProgramParameter(circleGradientShaderProgram, gl.LINK_STATUS)) {
+                alert("Could not initialise CircleGradientShaderProgram");
+            }
+
+            circleGradientShaderProgram.vertexPositionAttribute = gl.getAttribLocation(circleGradientShaderProgram, "aVertexPosition");
+            gl.enableVertexAttribArray(circleGradientShaderProgram.vertexPositionAttribute);
+
+            circleGradientShaderProgram.pMatrixUniform = gl.getUniformLocation(mobiusShaderProgram, "uPMatrixColor");
+            circleGradientShaderProgram.mvMatrixUniform = gl.getUniformLocation(mobiusShaderProgram, "uMVMatrixColor");
+
+            circleGradientShaderProgram.color0 = gl.getUniformLocation(circleGradientShaderProgram, "uColor0");
+            circleGradientShaderProgram.color1 = gl.getUniformLocation(circleGradientShaderProgram, "uColor1");
+            circleGradientShaderProgram.r0 = gl.getUniformLocation(circleGradientShaderProgram, "uR0");
+            circleGradientShaderProgram.r1 = gl.getUniformLocation(circleGradientShaderProgram, "uR1");
+
         }
 
         var disc;
@@ -166,12 +215,8 @@
             mvMatrix = mvMatrixStack.pop();
         }
 
-        function setMatrixUniforms() {
-            gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-            gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
-        }
-
         function initBuffers() {
+
         }
 
         var textureOffset = Complex.zero;
@@ -182,24 +227,20 @@
         var angleIncrement = 0;
 
         function drawScene() {
-            shaderProgram.MobiusA
             gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            gl.enable(gl.BLEND);
+            gl.disable(gl.DEPTH_TEST); 			// Turn Depth Testing Off
 
             //      mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
             mat4.ortho(-1, 1, -1, 1, 0.1, 100.0, pMatrix);
             mat4.identity(mvMatrix);
             mat4.translate(mvMatrix, [0.0, 0.0, -5.0]);
+            
+            disc.draw(motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram);
 
-            setMatrixUniforms();
-
-            gl.uniform2fv(shaderProgram.textureOffset, textureOffset.data)
-            gl.uniform2fv(shaderProgram.MobiusA, motionMobius.a.data)
-            gl.uniform2fv(shaderProgram.MobiusB, motionMobius.b.data)
-            gl.uniform2fv(shaderProgram.MobiusC, motionMobius.c.data)
-            gl.uniform2fv(shaderProgram.MobiusD, motionMobius.d.data)
-
-            disc.draw(motionMobius, textureOffset, shaderProgram);
         }
 
         var startTime = 0;
@@ -366,7 +407,8 @@
 
     </script>
     <style type="text/css">
-        body {
+        body
+        {
             background-color: #000;
             font-family: 'Helvetica Neue' , Helvetica, Arial, sans-serif;
             font-size: 15px;

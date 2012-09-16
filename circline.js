@@ -134,7 +134,7 @@ Line.createPointAngle = function(point, angle) {
 };
 	
 Line.prototype.inverse = function() {
-	if (accuracy.lengthIsZero(c / 1)) {  
+	if (accuracy.lengthIsZero(c)) {  
 		return new Line(this.b.conjugate(), 0);
 	}
 
