@@ -411,6 +411,8 @@ function Disc(region, bitmap, isInverting) {
     this.initialFace = Face.create(region); //.transform(Mobius.createDiscAutomorphism(new Complex([0.001, 0.001]), 0));
     this.faces = [this.initialFace];
 
+    this.averageImagePixel(texturePath);
+
     /*			// texture
     GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
     texture = CreateTexture(bitmap);
@@ -439,6 +441,41 @@ function Disc(region, bitmap, isInverting) {
 
     this.initFaces();
     this.initTextures();
+}
+
+var backgroundColor = null;
+Disc.prototype.averageImagePixel = function (url) {
+    var j = new JpegImage();
+    j.onload = function () {
+        var c = document.createElement("canvas");
+        //     canv.setAttribute('width', 300);
+        //     canv.setAttribute('height', 300);
+
+        c.width = j.width;
+        c.height = j.height;
+        var ctx = c.getContext("2d");
+        var d = ctx.getImageData(0, 0, j.width, j.height);
+        j.copyToImageData(d);
+        //   ctx.putImageData(d, 0, 0);
+
+        var r = 0;
+        var g = 0;
+        var b = 0;
+        var a = 0;
+        var len = d.data.length;
+        for (var i = 0; i < len; i += 4) {
+            backgroundColor = [
+                r += d.data[i + 0],
+                g += d.data[i + 1],
+                b += d.data[i + 2],
+                a += d.data[i + 3]
+            ];
+        }
+
+        backgroundColor = [r / len * 4 / 256, g / len * 4 / 256, b / len * 4 / 256, a / len * 4 / 256];
+    };
+
+    j.load(url);
 }
 
 Disc.prototype.initFaces = function () {
@@ -498,6 +535,8 @@ Disc.prototype.initFaces = function () {
 
 }
 
+var texturePath = "LawsonFront.jpg";
+//var texturePath = "nehe.gif";
 var texture;  // TBD figure out how to tidy this up.
 Disc.prototype.initTextures = function () {
     texture = gl.createTexture();
@@ -511,10 +550,14 @@ Disc.prototype.initTextures = function () {
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
-    texture.image.src = "nehe.gif";
+    texture.image.src = texturePath;
 };
 
 Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram) {
+    if (backgroundColor != null) {
+        this.drawCircleGradient(colorAlpha(backgroundColor, 1), colorAlpha(backgroundColor, 1), 0.1, 1, circleGradientShaderProgram);
+    }
+
     gl.useProgram(mobiusShaderProgram);
     gl.uniform2fv(mobiusShaderProgram.textureOffset, textureOffset.data)
     gl.uniform2fv(mobiusShaderProgram.mobiusA, motionMobius.a.data)
@@ -525,13 +568,21 @@ Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram
     for (var i = 0; i < this.faces.length; i++) {
         this.faces[i].draw(motionMobius, textureOffset, texture, mobiusShaderProgram);
     }
-
- //   var thickness = 20 * (1 - this.circleLimit);
-    var width = 0.03;
-    this.drawCircleGradient([0.5, 0.5, 0.5, 0], [0.5, 0.5, 0.5, 1], 1 - width, 1, circleGradientShaderProgram);
+    
+    //   var thickness = 20 * (1 - this.circleLimit);
+    var gradientInside = 0.04;
+    var gradientMiddle = 0.01;
+    if (backgroundColor != null) {
+        this.drawCircleGradient(colorAlpha(backgroundColor, 0), colorAlpha(backgroundColor, 1), 1 - gradientInside, 1 - gradientMiddle, circleGradientShaderProgram);
+        this.drawCircleGradient(colorAlpha(backgroundColor, 1), colorAlpha(backgroundColor, 1), 1 - gradientMiddle, 1, circleGradientShaderProgram);
+    }
     var thickness = 0.005;
     this.drawCircleGradient([1, 1, 1, 0], [1, 1, 1, 1], 1 - thickness / 2, 1, circleGradientShaderProgram);
     this.drawCircleGradient([1, 1, 1, 1], [1, 1, 1, 0], 1, 1 + thickness / 2, circleGradientShaderProgram);
+}
+
+function colorAlpha(color, alpha) {
+    return [color[0], color[1], color[2], alpha];
 }
 
 Disc.prototype.drawCircleGradient = function (color0, color1, r0, r1, circleGradientShaderProgram) {
