@@ -227,8 +227,8 @@
         var angleIncrement = 0;
 
         function drawScene() {
-       //     this.canvas.width = window.innerWidth;
-       //     this.canvas.height = window.innerWidth;
+            //     this.canvas.width = window.innerWidth;
+            //     this.canvas.height = window.innerWidth;
 
             gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -367,9 +367,9 @@
             initialMousePos = thisMousePos;
         }
 
-        var canvasSize = 800;
+        //   var canvasSize = 800;
         function mousePos() {
-            return new Complex([2 * window.event.clientX / canvasSize - 1, 1 - 2 * window.event.clientY / canvasSize]);
+            return new Complex([2 * window.event.clientX / canvas.width - 1, 1 - 2 * window.event.clientY / canvas.height]);
         }
 
         function reset() {
@@ -399,8 +399,8 @@
         }
 
 //        window.onload = window.onresize = function () {
-//            var pw = canvasNode.parentNode.clientWidth;
-//            var ph = canvasNode.parentNode.clientHeight;
+//            var pw = canvas.parentNode.clientWidth;
+//            var ph = canvas.parentNode.clientHeight;
 
 //            canvas.height = pw * 0.8 * (canvas.height / canvas.width);
 //            canvas.width = pw * 0.8;
@@ -408,34 +408,35 @@
 //            canvas.style.left = (pw - canvas.width) / 2 + "px";
 
 
-////            var C = 1;        // canvas width to viewport width ratio
-////            var W_TO_H = 1;   // canvas width to canvas height ratio
+            ////            var C = 1;        // canvas width to viewport width ratio
+            ////            var W_TO_H = 1;   // canvas width to canvas height ratio
 
-////            // For IE compatibility http://www.google.com/search?q=get+viewport+size+js
-////            var viewportWidth = window.innerWidth;
-////            var viewportHeight = window.innerHeight;
+            ////            // For IE compatibility http://www.google.com/search?q=get+viewport+size+js
+            ////            var viewportWidth = window.innerWidth;
+            ////            var viewportHeight = window.innerHeight;
 
-////            var canvasWidth = viewportWidth * C;
-////            var canvasHeight = canvasWidth / W_TO_H;
-////            canvas.style.position = "fixed";
-////            canvas.setAttribute("width", canvasWidth);
-////            canvas.setAttribute("height", canvasHeight);
-////            canvas.style.top = (viewportHeight - canvasHeight) / 2;
-////            canvas.style.left = (viewportWidth - canvasWidth) / 2;
+            ////            var canvasWidth = viewportWidth * C;
+            ////            var canvasHeight = canvasWidth / W_TO_H;
+            ////            canvas.style.position = "fixed";
+            ////            canvas.setAttribute("width", canvasWidth);
+            ////            canvas.setAttribute("height", canvasHeight);
+            ////            canvas.style.top = (viewportHeight - canvasHeight) / 2;
+            ////            canvas.style.left = (viewportWidth - canvasWidth) / 2;
 
-////            window.ctx = canvas.getContext("2d");
-////            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-////            ctx.fillStyle = 'yellow';
-////            ctx.moveTo(0, canvasHeight / 2);
-////            ctx.lineTo(canvasWidth / 2, 0);
-////            ctx.lineTo(canvasWidth, canvasHeight / 2);
-////            ctx.lineTo(canvasWidth / 2, canvasHeight);
-////            ctx.lineTo(0, canvasHeight / 2);
-////            ctx.fill()
-//        }
+            ////            window.ctx = canvas.getContext("2d");
+            ////            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            ////            ctx.fillStyle = 'yellow';
+            ////            ctx.moveTo(0, canvasHeight / 2);
+            ////            ctx.lineTo(canvasWidth / 2, 0);
+            ////            ctx.lineTo(canvasWidth, canvasHeight / 2);
+            ////            ctx.lineTo(canvasWidth / 2, canvasHeight);
+            ////            ctx.lineTo(0, canvasHeight / 2);
+            ////            ctx.fill()
+   //     }
 
         function Doc() {
             this.canvas = document.getElementById("canvas");
+            this.controls = document.getElementById("controls");
             this.output = document.getElementById("output");
             this.framerate = document.getElementById("framerate");
             this.pField = document.getElementById("p");
@@ -452,7 +453,7 @@
             font-family: 'Helvetica Neue' , Helvetica, Arial, sans-serif;
             font-size: 15px;
             font-weight: 700;
-            color: white;
+     color: white;
             font-family: 'Doppio One' , 'Helvetica Neue' , Helvetica, Arial, sans-serif;
             padding: 0px;
         }
@@ -463,19 +464,30 @@
             height: 100%;
             margin: 0px;
         }
-
+        #controls
+        {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 250px;
+            margin: 0 0 0 0;
+            background-color: #222;
+            padding: 0 0 0 10px;           
+        }
     </style>
 </head>
 <body onload="webGLStart();">
     <canvas id="canvas" style="border: none;" width="800" height="800"></canvas>
-    <p id="framerate">
-    </p>
-    <p id="output">
-    </p>
-    <p>
-        <input type='text' id='p' value='5' size='5' />
-        <input type='text' id='q' value='5' size='5' />
-        <input type='button' id='reset' value="reset" />
-    </p>
+    <div id="controls">
+        <p id="framerate">
+        </p>
+        <p id="output">
+        </p>
+        <p>
+            <input type='text' id='p' value='5' size='5' />
+            <input type='text' id='q' value='5' size='5' />
+            <input type='button' id='reset' value="reset" />
+        </p>
+    </div>
 </body>
 </html>

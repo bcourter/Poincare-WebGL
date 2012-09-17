@@ -450,7 +450,7 @@ Disc.prototype.averageImagePixel = function (url) {
             ];
         }
 
-        backgroundColor = [r / len * 4 / 256, g / len * 4 / 256, b / len * 4 / 256, a / len * 4 / 256];
+        backgroundColor = [r / len * 4 / 255, g / len * 4 / 255, b / len * 4 / 255, a / len * 4 / 255];
     };
 
     j.load(url);
