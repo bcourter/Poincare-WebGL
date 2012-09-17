@@ -1,7 +1,7 @@
 <html>
 <head>
     <title>Poincare' Kaleidoscope</title>
-    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
     <script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
     <script type="text/javascript" src="webgl-utils.js"></script>
     <script type="text/javascript" src="Complex.js"></script>
@@ -95,7 +95,6 @@
             } catch (e) {
             }
             if (!gl) {
-                //O
                 alert("Could not initialise WebGL, sorry :-(");
             }
         }
@@ -228,6 +227,9 @@
         var angleIncrement = 0;
 
         function drawScene() {
+       //     this.canvas.width = window.innerWidth;
+       //     this.canvas.height = window.innerWidth;
+
             gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -239,7 +241,7 @@
             mat4.ortho(-1, 1, -1, 1, 0.1, 100.0, pMatrix);
             mat4.identity(mvMatrix);
             mat4.translate(mvMatrix, [0.0, 0.0, -5.0]);
-            
+
             disc.draw(motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram);
 
         }
@@ -325,7 +327,6 @@
         var thisMousePos = Complex.zero;
         var initialMousePos = Complex.zero;
 
-        var canvasSize = 800;
         function handleMouseDown(event) {
             isDragging = true;
             thisMousePos = mousePos(event)
@@ -366,6 +367,7 @@
             initialMousePos = thisMousePos;
         }
 
+        var canvasSize = 800;
         function mousePos() {
             return new Complex([2 * window.event.clientX / canvasSize - 1, 1 - 2 * window.event.clientY / canvasSize]);
         }
@@ -396,6 +398,42 @@
             tick();
         }
 
+//        window.onload = window.onresize = function () {
+//            var pw = canvasNode.parentNode.clientWidth;
+//            var ph = canvasNode.parentNode.clientHeight;
+
+//            canvas.height = pw * 0.8 * (canvas.height / canvas.width);
+//            canvas.width = pw * 0.8;
+//            canvas.style.top = (ph - canvas.height) / 2 + "px";
+//            canvas.style.left = (pw - canvas.width) / 2 + "px";
+
+
+////            var C = 1;        // canvas width to viewport width ratio
+////            var W_TO_H = 1;   // canvas width to canvas height ratio
+
+////            // For IE compatibility http://www.google.com/search?q=get+viewport+size+js
+////            var viewportWidth = window.innerWidth;
+////            var viewportHeight = window.innerHeight;
+
+////            var canvasWidth = viewportWidth * C;
+////            var canvasHeight = canvasWidth / W_TO_H;
+////            canvas.style.position = "fixed";
+////            canvas.setAttribute("width", canvasWidth);
+////            canvas.setAttribute("height", canvasHeight);
+////            canvas.style.top = (viewportHeight - canvasHeight) / 2;
+////            canvas.style.left = (viewportWidth - canvasWidth) / 2;
+
+////            window.ctx = canvas.getContext("2d");
+////            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+////            ctx.fillStyle = 'yellow';
+////            ctx.moveTo(0, canvasHeight / 2);
+////            ctx.lineTo(canvasWidth / 2, 0);
+////            ctx.lineTo(canvasWidth, canvasHeight / 2);
+////            ctx.lineTo(canvasWidth / 2, canvasHeight);
+////            ctx.lineTo(0, canvasHeight / 2);
+////            ctx.fill()
+//        }
+
         function Doc() {
             this.canvas = document.getElementById("canvas");
             this.output = document.getElementById("output");
@@ -416,9 +454,16 @@
             font-weight: 700;
             color: white;
             font-family: 'Doppio One' , 'Helvetica Neue' , Helvetica, Arial, sans-serif;
-            margin: 0px;
             padding: 0px;
         }
+        
+        html, body
+        {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+        }
+
     </style>
 </head>
 <body onload="webGLStart();">
