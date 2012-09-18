@@ -484,7 +484,7 @@ Disc.prototype.initFaces = function () {
             var mobius = edge.Circline.asMobius();
             var image = face.conjugate().transform(mobius);
             if (isNaN(image.center.data[0])) {
-                alert();
+                output("NaN!");
                 continue;
             }
 
@@ -533,7 +533,7 @@ Disc.prototype.initTextures = function () {
 
 Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram) {
     if (backgroundColor != null) {
-        this.drawCircleGradient(colorAlpha(backgroundColor, 1), colorAlpha(backgroundColor, 1), 0.1, 1, circleGradientShaderProgram);
+        this.drawCircleGradient(colorAlpha(backgroundColor, 1), colorAlpha(backgroundColor, 1), 0, 1, circleGradientShaderProgram);
     }
 
     gl.useProgram(mobiusShaderProgram);
@@ -547,7 +547,6 @@ Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram
         this.faces[i].draw(motionMobius, textureOffset, texture, mobiusShaderProgram);
     }
     
-    //   var thickness = 20 * (1 - this.circleLimit);
     var gradientInside = 0.04;
     var gradientMiddle = 0.01;
     if (backgroundColor != null) {

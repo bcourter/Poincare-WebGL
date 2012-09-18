@@ -102,7 +102,7 @@
             } catch (e) {
             }
             if (!gl) {
-                alert("Could not initialise WebGL.");
+                output("Could not initialize WebGL.");
             }
         }
 
@@ -134,7 +134,7 @@
             gl.compileShader(shader);
 
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                alert(gl.getShaderInfoLog(shader));
+                output(gl.getShaderInfoLog(shader));
                 return null;
             }
 
@@ -153,7 +153,7 @@
             gl.linkProgram(mobiusShaderProgram);
 
             if (!gl.getProgramParameter(mobiusShaderProgram, gl.LINK_STATUS)) {
-                alert("Could not initialise shaders");
+                output("Could not initialise shaders");
             }
 
             mobiusShaderProgram.vertexPositionAttribute = gl.getAttribLocation(mobiusShaderProgram, "aVertexPosition");
@@ -162,8 +162,6 @@
             mobiusShaderProgram.textureCoordAttribute = gl.getAttribLocation(mobiusShaderProgram, "aTextureCoord");
             gl.enableVertexAttribArray(mobiusShaderProgram.textureCoordAttribute);
 
-            mobiusShaderProgram.pMatrixUniform = gl.getUniformLocation(mobiusShaderProgram, "uPMatrix");
-            mobiusShaderProgram.mvMatrixUniform = gl.getUniformLocation(mobiusShaderProgram, "uMVMatrix");
             mobiusShaderProgram.samplerUniform = gl.getUniformLocation(mobiusShaderProgram, "uSampler");
             mobiusShaderProgram.textureOffset = gl.getUniformLocation(mobiusShaderProgram, "vTextureOffset");
             mobiusShaderProgram.mobiusA = gl.getUniformLocation(mobiusShaderProgram, "uMobiusA");
@@ -181,14 +179,11 @@
             gl.linkProgram(circleGradientShaderProgram);
 
             if (!gl.getProgramParameter(circleGradientShaderProgram, gl.LINK_STATUS)) {
-                alert("Could not initialise CircleGradientShaderProgram");
+                output("Could not initialise CircleGradientShaderProgram");
             }
 
             circleGradientShaderProgram.vertexPositionAttribute = gl.getAttribLocation(circleGradientShaderProgram, "aVertexPosition");
             gl.enableVertexAttribArray(circleGradientShaderProgram.vertexPositionAttribute);
-
-            circleGradientShaderProgram.pMatrixUniform = gl.getUniformLocation(mobiusShaderProgram, "uPMatrixColor");
-            circleGradientShaderProgram.mvMatrixUniform = gl.getUniformLocation(mobiusShaderProgram, "uMVMatrixColor");
 
             circleGradientShaderProgram.color0 = gl.getUniformLocation(circleGradientShaderProgram, "uColor0");
             circleGradientShaderProgram.color1 = gl.getUniformLocation(circleGradientShaderProgram, "uColor1");
@@ -234,9 +229,6 @@
         var angleIncrement = 0;
 
         function drawScene() {
-            //     this.canvas.width = window.innerWidth;
-            //     this.canvas.height = window.innerWidth;
-
             gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -250,7 +242,6 @@
             mat4.translate(mvMatrix, [0.0, 0.0, -5.0]);
 
             disc.draw(motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram);
-
         }
 
         var startTime = 0;
@@ -381,9 +372,13 @@
         function reset() {
             var startTime = new Date().getTime();
             initGeometry();
-            doc.output.innerHTML = "Initialization: " + (new Date().getTime() - startTime);
+            output("Initialization: " + (new Date().getTime() - startTime));
 
             initBuffers();
+        }
+
+        function output(text) {
+            doc.output.innerHTML = text;
         }
 
         var doc;
@@ -474,7 +469,7 @@
     </style>
 </head>
 <body onload="webGLStart();">
-    <canvas id="canvas" width="205" height="205">If your browser doesn't support canvas, it def won't support WebGL.</canvas>
+    <canvas id="canvas" width="205" height="205">If your browser doesn't support canvas, it def won't run WebGL.</canvas>
     <div id="controls">
         <p id="framerate">
         </p>
