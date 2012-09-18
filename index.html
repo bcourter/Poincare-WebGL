@@ -89,13 +89,20 @@
 
         function initGL(canvas) {
             try {
+                var parentWidth = canvas.parentNode.clientWidth;
+                var parentHeight = canvas.parentNode.clientHeight;
+
+                canvas.width = parentWidth;
+                canvas.height = parentWidth;
+                canvas.style.top = (parentHeight - canvas.height) / 2;
+
                 gl = doc.canvas.getContext("experimental-webgl");
                 gl.viewportWidth = canvas.width;
                 gl.viewportHeight = canvas.height;
             } catch (e) {
             }
             if (!gl) {
-                alert("Could not initialise WebGL, sorry :-(");
+                alert("Could not initialise WebGL.");
             }
         }
 
@@ -367,7 +374,6 @@
             initialMousePos = thisMousePos;
         }
 
-        //   var canvasSize = 800;
         function mousePos() {
             return new Complex([2 * window.event.clientX / canvas.width - 1, 1 - 2 * window.event.clientY / canvas.height]);
         }
@@ -398,41 +404,9 @@
             tick();
         }
 
-//        window.onload = window.onresize = function () {
-//            var pw = canvas.parentNode.clientWidth;
-//            var ph = canvas.parentNode.clientHeight;
-
-//            canvas.height = pw * 0.8 * (canvas.height / canvas.width);
-//            canvas.width = pw * 0.8;
-//            canvas.style.top = (ph - canvas.height) / 2 + "px";
-//            canvas.style.left = (pw - canvas.width) / 2 + "px";
-
-
-            ////            var C = 1;        // canvas width to viewport width ratio
-            ////            var W_TO_H = 1;   // canvas width to canvas height ratio
-
-            ////            // For IE compatibility http://www.google.com/search?q=get+viewport+size+js
-            ////            var viewportWidth = window.innerWidth;
-            ////            var viewportHeight = window.innerHeight;
-
-            ////            var canvasWidth = viewportWidth * C;
-            ////            var canvasHeight = canvasWidth / W_TO_H;
-            ////            canvas.style.position = "fixed";
-            ////            canvas.setAttribute("width", canvasWidth);
-            ////            canvas.setAttribute("height", canvasHeight);
-            ////            canvas.style.top = (viewportHeight - canvasHeight) / 2;
-            ////            canvas.style.left = (viewportWidth - canvasWidth) / 2;
-
-            ////            window.ctx = canvas.getContext("2d");
-            ////            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-            ////            ctx.fillStyle = 'yellow';
-            ////            ctx.moveTo(0, canvasHeight / 2);
-            ////            ctx.lineTo(canvasWidth / 2, 0);
-            ////            ctx.lineTo(canvasWidth, canvasHeight / 2);
-            ////            ctx.lineTo(canvasWidth / 2, canvasHeight);
-            ////            ctx.lineTo(0, canvasHeight / 2);
-            ////            ctx.fill()
-   //     }
+        window.onload = window.onresize = function () {
+            initGL(doc.canvas);
+        }
 
         function Doc() {
             this.canvas = document.getElementById("canvas");
@@ -453,7 +427,7 @@
             font-family: 'Helvetica Neue' , Helvetica, Arial, sans-serif;
             font-size: 15px;
             font-weight: 700;
-     color: white;
+            color: white;
             font-family: 'Doppio One' , 'Helvetica Neue' , Helvetica, Arial, sans-serif;
             padding: 0px;
         }
@@ -463,6 +437,26 @@
             width: 100%;
             height: 100%;
             margin: 0px;
+            overflow: hidden;
+        }
+        input
+        {
+            color: white;
+            border-style: solid;
+            border-width: 1px;
+            border-color: #666;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: #444;
+        }
+        #canvas
+        {
+            /*    width: 100%;
+            height: 100%;*/
+            position: absolute;
+            border: none;
+            top: 0;
+            left: 0;
         }
         #controls
         {
@@ -470,14 +464,17 @@
             bottom: 0;
             left: 0;
             width: 250px;
-            margin: 0 0 0 0;
+            margin: 1 1 1 1;
+            border-style: solid;
+            border-width: 1px;
+            border-color: #666;
             background-color: #222;
-            padding: 0 0 0 10px;           
+            padding: 0 0 0 10px;
         }
     </style>
 </head>
 <body onload="webGLStart();">
-    <canvas id="canvas" style="border: none;" width="800" height="800"></canvas>
+    <canvas id="canvas" width="205" height="205">If your browser doesn't support canvas, it def won't support WebGL.</canvas>
     <div id="controls">
         <p id="framerate">
         </p>
