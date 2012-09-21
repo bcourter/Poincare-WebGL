@@ -12,7 +12,7 @@ function Region(p, q) {
     this.c = Circle.prototype.create(new Complex([this.d, 0]), this.r);
     var center = this.c.center();
 
-    var polar = Complex.createPolar(this.r, Math.PI - this.phi)
+    var polar = Complex.createPolar(this.r, Math.PI - this.phi);
     this.p0 = Complex.zero;
     this.p1 = Complex.add(new Complex([this.d, 0]), polar);
     this.p2 = new Complex([this.d - this.r, 0]);
@@ -60,7 +60,7 @@ Face.create = function (region) {
     var midvertex = region.p1;
 
     var mesh = region.points;
-    var meshConjugate = Complex.conjugateArray(mesh)
+    var meshConjugate = Complex.conjugateArray(mesh);
     var meshCount = 3;
     var vertices = [p];
     var edgeCenters = [p];
@@ -118,7 +118,7 @@ Face.create = function (region) {
         rotation = Mobius.multiply(rotation, increment);
     }
 
-    face.initBuffers();
+    face.initBuffers(null);
     return face;
 };
 
@@ -127,7 +127,7 @@ Face.createFromExisting = function (previous, edges, center, vertices, edgeCente
     face.edges = edges;
     face.initBuffers(previous);
     return face;
-}
+};
 
 Face.prototype.initBuffers = function (previous) {
     var p = this.region.p;
@@ -166,7 +166,7 @@ Face.prototype.initBuffers = function (previous) {
     this.vertexBuffer.itemSize = 2;
     this.vertexBuffer.numItems = vertices.length;
 
-    if (previous != null) {
+    if (previous !== null) {
         this.textureBuffer = previous.textureBuffer;
         this.indexBuffers = previous.indexBuffers;
     } else {
@@ -206,8 +206,8 @@ Face.prototype.initBuffers = function (previous) {
 
         var centerI = vertices.length / 2 - 1;
         var dualEdgesI = [0, 1, 2];
-        var edgeCentersI = 3
-        var halfEdgesI = [4, 5, 6, 7, 8, 9]
+        var edgeCentersI = 3;
+        var halfEdgesI = [4, 5, 6, 7, 8, 9];
         var verticesI = 10;
         var spinesI = [11, 12, 13];
         var interiorsI = [14, 15, 16, 17, 18, 19];
@@ -328,7 +328,7 @@ Face.prototype.transform = function (mobius) {
     }
 
     return Face.createFromExisting(this, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, this.isFlipped);
-}
+};
 
 Face.prototype.conjugate = function () {
     var p = this.region.p;
@@ -374,15 +374,14 @@ Face.prototype.draw = function (motionMobius, textureOffset, texture, shaderProg
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffers[i]);
         gl.drawElements(gl.TRIANGLE_STRIP, this.indexBuffers[i].numItems, gl.UNSIGNED_SHORT, 0);
     }
-}
-
+};
 
 function Edge(Face, Circline, start, end) {
     this.Face = Face;
     this.Circline = Circline;
     this.start = start;
     this.end = end;
-};
+}
 
 Edge.prototype.transform = function (mobius) {
     return new Edge(this.Face, this.Circline.transform(mobius), this.start.transform(mobius), this.end.transform(mobius));
@@ -454,7 +453,7 @@ Disc.prototype.averageImagePixel = function (url) {
     };
 
     j.load(url);
-}
+};
 
 Disc.prototype.initFaces = function () {
     var seedFace = this.initialFace;
@@ -511,7 +510,7 @@ Disc.prototype.initFaces = function () {
         }
     }
 
-}
+};
 
 var texturePath = "LawsonFront.jpg";
 //var texturePath = "nehe.gif";
@@ -526,37 +525,36 @@ Disc.prototype.initTextures = function () {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.bindTexture(gl.TEXTURE_2D, null);
-    }
+    };
 
     texture.image.src = texturePath;
 };
 
 Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram) {
-    if (backgroundColor != null) {
+    if (backgroundColor !== null)
         this.drawCircleGradient(colorAlpha(backgroundColor, 1), colorAlpha(backgroundColor, 1), 0, 1, circleGradientShaderProgram);
-    }
 
     gl.useProgram(mobiusShaderProgram);
-    gl.uniform2fv(mobiusShaderProgram.textureOffset, textureOffset.data)
-    gl.uniform2fv(mobiusShaderProgram.mobiusA, motionMobius.a.data)
-    gl.uniform2fv(mobiusShaderProgram.mobiusB, motionMobius.b.data)
-    gl.uniform2fv(mobiusShaderProgram.mobiusC, motionMobius.c.data)
-    gl.uniform2fv(mobiusShaderProgram.mobiusD, motionMobius.d.data)
+    gl.uniform2fv(mobiusShaderProgram.textureOffset, textureOffset.data);
+    gl.uniform2fv(mobiusShaderProgram.mobiusA, motionMobius.a.data);
+    gl.uniform2fv(mobiusShaderProgram.mobiusB, motionMobius.b.data);
+    gl.uniform2fv(mobiusShaderProgram.mobiusC, motionMobius.c.data);
+    gl.uniform2fv(mobiusShaderProgram.mobiusD, motionMobius.d.data);
 
     for (var i = 0; i < this.faces.length; i++) {
         this.faces[i].draw(motionMobius, textureOffset, texture, mobiusShaderProgram);
     }
-    
+
     var gradientInside = 0.04;
     var gradientMiddle = 0.01;
-    if (backgroundColor != null) {
+    if (backgroundColor !== null) {
         this.drawCircleGradient(colorAlpha(backgroundColor, 0), colorAlpha(backgroundColor, 1), 1 - gradientInside, 1 - gradientMiddle, circleGradientShaderProgram);
         this.drawCircleGradient(colorAlpha(backgroundColor, 1), colorAlpha(backgroundColor, 1), 1 - gradientMiddle, 1, circleGradientShaderProgram);
     }
     var thickness = 0.005;
     this.drawCircleGradient([1, 1, 1, 0], [1, 1, 1, 1], 1 - thickness / 2, 1, circleGradientShaderProgram);
     this.drawCircleGradient([1, 1, 1, 1], [1, 1, 1, 0], 1, 1 + thickness / 2, circleGradientShaderProgram);
-}
+};
 
 function colorAlpha(color, alpha) {
     return [color[0], color[1], color[2], alpha];
@@ -568,6 +566,8 @@ Disc.prototype.drawCircleGradient = function (color0, color1, r0, r1, circleGrad
     gl.uniform4fv(circleGradientShaderProgram.color1, color1);
     gl.uniform1f(circleGradientShaderProgram.r0, r0);
     gl.uniform1f(circleGradientShaderProgram.r1, r1);
+    gl.uniform1f(circleGradientShaderProgram.width, canvas.width);
+    gl.uniform1f(circleGradientShaderProgram.height, canvas.height);
 
     gl.useProgram(circleGradientShaderProgram);
 
@@ -586,5 +586,9 @@ Disc.prototype.drawCircleGradient = function (color0, color1, r0, r1, circleGrad
     gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
     gl.vertexAttribPointer(circleGradientShaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+
+
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
-}
+
+
+};
