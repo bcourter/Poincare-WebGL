@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>Poincare' Kaleidoscope</title>
+    <title>Poincar&eacute; Kaleidoscope</title>
     <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
     <script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
     <script type="text/javascript" src="webgl-utils.js"></script>
@@ -196,10 +196,11 @@
 
         var disc;
         function initGeometry() {
-            //	var c = Circle.prototype.create(Complex.one, 1);
-            p = parseInt(doc.pField.value);
-            q = parseInt(doc.qField.value);
-            disc = new Disc(new Region(p, q), "", true);
+            var p = parseInt(doc.pField.value);
+            var q = parseInt(doc.qField.value);
+			var image = doc.imageField.value;
+            var circleLimit = parseFloat(doc.circleLimitField.value);
+            disc = new Disc(new Region(p, q), image, circleLimit, true);
         }
 
         var mvMatrix = mat4.create();
@@ -217,10 +218,6 @@
                 throw "Invalid popMatrix!";
             }
             mvMatrix = mvMatrixStack.pop();
-        }
-
-        function initBuffers() {
-
         }
 
         var textureOffset = Complex.zero;
@@ -318,11 +315,16 @@
             animate();
             var animateTime = new Date().getTime();
 	
-            doc.framerateText.innerHTML = Math.round(10000 / (animateTime - lastTickTime)) / 10 + "";
+            doc.framerateText.innerHTML =  "init:&nbsp;" + round(initTime / 1000, 2) + "s&nbsp;&nbsp;fps:&nbsp;" + round(1000 / (animateTime - lastTickTime), 1) + "";
             lastTickTime = animateTime;
 
 			drawMinimizeControlsButton();
         }
+
+		function round(t, n) {
+			var f = Math.pow(10, n);
+			return Math.round(t * f) / f;
+		}
 
 		function drawMinimizeControlsButton() {
 			var ctx=doc.controlsPanelMinimizeCanvas.getContext("2d");
@@ -350,14 +352,13 @@
 		}
 
 		function handleMinimizeControlsButtonClick(event) {
+			var x = event.clientX;
+			var y = event.clientY;
+			//var bx = doc.controlsPanelMinimize.x;
 			doc.areControlsMinimized = !doc.areControlsMinimized;
 			doc.controlsBody.style.display = doc.areControlsMinimized ? "none" : "block";
-			doc.framerate.style.display = doc.areControlsMinimized ? "none" : "block";
-	//		doc.controlsBody.style.display = doc.areControlsMinimized ? "none" : "block";
 			doc.controlsPanelMinimize.style.position = doc.areControlsMinimized ? "relative" : "absolute"
 		}
-
-
 
         var isDragging = false;
         var isDraggingAngle = false;
@@ -408,13 +409,12 @@
             return new Complex([2 * window.event.clientX / doc.canvas.width - 1, 1 - 2 * window.event.clientY / doc.canvas.height]);
         }
 
+		var initTime;
         function reset() {
             var startTime = new Date().getTime();
             initGeometry();
-            output("Initialization: " + (new Date().getTime() - startTime));
-
-            initBuffers();
-        }
+            initTime = new Date().getTime() - startTime;
+       }
 
         function output(text) {
             doc.output.innerHTML = text;
@@ -448,17 +448,18 @@
 
             this.controlsPanelMinimize = document.getElementById("controlsPanelMinimize");
             this.controlsPanelMinimizeCanvas = document.getElementById("controlsPanelMinimizeCanvas");
-			this.controlsPanelMinimizeCanvas.onclick = handleMinimizeControlsButtonClick;
+			this.controlsPanelMinimize.onclick = handleMinimizeControlsButtonClick;
 			this.controlsPanelMinimizeSize = this.controlsPanelMinimize.clientWidth;
             this.areControlsMinimized = false;
 
             this.controlsBody = document.getElementById("controlsBody");
 
 			this.output = document.getElementById("output");
-            this.framerate = document.getElementById("controlsFramerate");
             this.framerateText = document.getElementById("controlsFramerateText");
             this.pField = document.getElementById("p");
             this.qField = document.getElementById("q");
+            this.circleLimitField = document.getElementById("circleLimit");
+            this.imageField = document.getElementById("image");
             this.resetButton = document.getElementById("reset");
             this.resetButton.onclick = reset;
         }
@@ -469,11 +470,12 @@
         {
             background-color: #000;
             font-family: 'Helvetica Neue' , Helvetica, Arial, sans-serif;
-            font-size: 15px;
-            font-weight: 700;
+            font-size: 12px;
+            font-weight: 600;
             color: white;
             font-family: 'Doppio One' , 'Helvetica Neue' , Helvetica, Arial, sans-serif;
             padding: 0px;
+			line-height: 22px; 
         }
         
         html, body
@@ -483,6 +485,10 @@
             margin: 0px;
             overflow: hidden;
         }
+		hr 
+		{
+			border-color: #666;
+		}
         input
         {
             color: white;
@@ -491,11 +497,13 @@
             border-color: #666;
             margin-left: auto;
             margin-right: auto;
+			text-align: center;
             background-color: #444;
+			height: 18px;
         }
         #canvas
         {
-            /*    width: 100%;
+            /*    width: 100%;LawsonFront
             height: 100%;*/
             position: absolute;
             border: none;
@@ -522,29 +530,37 @@
             height: 10px;
             margin: 2 2 2 2;
         }
-        #controlsFramerate
-        {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            font-size: 10px;
-            font-weight: 200;
-            color: #999;
-      }
-        #controlsFramerateText
-        {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            margin: 0 0 0 0;
-      }
         #controlsBody
         {
             position: static;
             margin: 0 0 0 0;
-            padding: 0 10 0 10px;
+            padding: 0 8 0 8px;
         }
-    </style>
+        #controlsTextArea
+        {
+            margin: 0 0 0 0;
+            font-size: 10px;
+            font-weight: 200;
+            color: #999;
+			line-height: 14px; 
+        }    
+			a {
+				color: #888;
+			}
+			a:link {
+				color: #888;
+			}
+			a:visited {
+				color: #888;
+			}
+			a:hover {
+				color: #aaa;
+			}
+			a:hover {
+				color: #aaa;
+			}
+			
+</style>
 </head>
 <body onload="webGLStart();">
     <canvas id="canvas" width="205" height="205">If your browser doesn't support canvas, it def won't run WebGL.</canvas>
@@ -552,17 +568,30 @@
 		<div id="controlsPanelMinimize">
      		<canvas <canvas id="controlsPanelMinimizeCanvas" /> 
 		</div>
-		<div id="controlsFramerate">
- 			<p id="controlsFramerateText" />
-		</div>
 		<div id="controlsBody">
 		    <p id="output" />
-		    <p>
-		        <input type='text' id='p' value='5' size='5' />
-		        <input type='text' id='q' value='5' size='5' />
-		        <input type='button' id='reset' value="reset" />
+		         { <input type='text' id='p' value='5' size='1' /> |
+				<input type='text' id='q' value='5' size='1' /> }
+			<br />
+				limit: <input type='text' id='circleLimit' value='0.99' size='3' />
+			<br />			
+		        <input type='text' id='image' value="LawsonFront.jpg" size='15'/>
+			</p> <p>
+		        <input type='button' id='reset' value="update" style="text-align:right" />
 		    </p>
-		</div>
+			<hr />
+			<div id="controlsTextArea">
+				<p>
+					Poincar&eacute; Kaleidoscope
+				<br />
+					&copy; 2012 Blake Courter
+				<br />
+					<a href="https://github.com/bcourter/Poincare-WebGL" target='_blank' >http://github.com/bcourter/...</a>
+				</p>
+				<p id="controlsFramerateText" />
+			</div>
+		</div> 	
+
     </div>
 </body>
 </html>

@@ -400,17 +400,18 @@ Edge.prototype.isConvex = function () {
     return (a1 - a2 + 4 * Math.PI) % (2 * Math.PI) < Math.PI;
 };
 
-function Disc(region, bitmap, isInverting) {
-    this.circleLimit = 0.999;
-    this.radiusLimit = 1E-4;
-
+function Disc(region, bitmapURL, circleLimit, isInverting) {
     this.region = region;
+    this.circleLimit = circleLimit;
+	this.bitmapURL = bitmapURL;
     this.isInverting = isInverting;
+
+    this.radiusLimit = 1E-4;
 
     this.initialFace = Face.create(region); //.transform(Mobius.createDiscAutomorphism(new Complex([0.001, 0.001]), 0));
     this.faces = [this.initialFace];
 
-    this.averageImagePixel(texturePath);
+    this.averageImagePixel(bitmapURL);
 
     this.drawCount = 1;
     this.totalDraw = 0;
@@ -512,7 +513,7 @@ Disc.prototype.initFaces = function () {
 
 };
 
-var texturePath = "LawsonFront.jpg";
+//var texturePath = "LawsonFront.jpg";
 //var texturePath = "nehe.gif";
 var texture;  // TBD figure out how to tidy this up.
 Disc.prototype.initTextures = function () {
@@ -527,7 +528,7 @@ Disc.prototype.initTextures = function () {
         gl.bindTexture(gl.TEXTURE_2D, null);
     };
 
-    texture.image.src = texturePath;
+    texture.image.src = this.bitmapURL;
 };
 
 Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram) {
@@ -552,8 +553,8 @@ Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram
         this.drawCircleGradient(colorAlpha(backgroundColor, 1), colorAlpha(backgroundColor, 1), 1.0 - gradientMiddle, 1.0, circleGradientShaderProgram);
     }
     var thickness = 0.005;
-    this.drawCircleGradient([1, 1, 1, 0], [1, 1, 1, 1], 1 - thickness, 1 - thickness / 2, circleGradientShaderProgram);
-    this.drawCircleGradient([1, 1, 1, 1], [0, 0, 0, 1], 1 - thickness / 2, 1, circleGradientShaderProgram); //TBD doesn't transparency antialias?
+    this.drawCircleGradient([1, 1, 1, 0], [1, 1, 1, 1], 1 - 3/4 * thickness, 1 - thickness / 4, circleGradientShaderProgram);
+    this.drawCircleGradient([1, 1, 1, 1], [0, 0, 0, 1], 1 - thickness / 4, 1 + thickness / 4, circleGradientShaderProgram); //TBD doesn't transparency antialias?
 };
 
 function colorAlpha(color, alpha) {
