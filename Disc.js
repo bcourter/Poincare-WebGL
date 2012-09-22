@@ -548,12 +548,12 @@ Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram
     var gradientInside = 0.04;
     var gradientMiddle = 0.01;
     if (backgroundColor !== null) {
-        this.drawCircleGradient(colorAlpha(backgroundColor, 0), colorAlpha(backgroundColor, 1), 1 - gradientInside, 1 - gradientMiddle, circleGradientShaderProgram);
-        this.drawCircleGradient(colorAlpha(backgroundColor, 1), colorAlpha(backgroundColor, 1), 1 - gradientMiddle, 1, circleGradientShaderProgram);
+        this.drawCircleGradient(colorAlpha(backgroundColor, 0), colorAlpha(backgroundColor, 1), 1.0 - gradientInside, 1 - gradientMiddle, circleGradientShaderProgram);
+        this.drawCircleGradient(colorAlpha(backgroundColor, 1), colorAlpha(backgroundColor, 1), 1.0 - gradientMiddle, 1.0, circleGradientShaderProgram);
     }
     var thickness = 0.005;
-    this.drawCircleGradient([1, 1, 1, 0], [1, 1, 1, 1], 1 - thickness / 2, 1, circleGradientShaderProgram);
-    this.drawCircleGradient([1, 1, 1, 1], [1, 1, 1, 0], 1, 1 + thickness / 2, circleGradientShaderProgram);
+    this.drawCircleGradient([1, 1, 1, 0], [1, 1, 1, 1], 1 - thickness, 1 - thickness / 2, circleGradientShaderProgram);
+    this.drawCircleGradient([1, 1, 1, 1], [0, 0, 0, 1], 1 - thickness / 2, 1, circleGradientShaderProgram); //TBD doesn't transparency antialias?
 };
 
 function colorAlpha(color, alpha) {
@@ -566,10 +566,7 @@ Disc.prototype.drawCircleGradient = function (color0, color1, r0, r1, circleGrad
     gl.uniform4fv(circleGradientShaderProgram.color1, color1);
     gl.uniform1f(circleGradientShaderProgram.r0, r0);
     gl.uniform1f(circleGradientShaderProgram.r1, r1);
-    gl.uniform1f(circleGradientShaderProgram.width, canvas.width);
-    gl.uniform1f(circleGradientShaderProgram.height, canvas.height);
-
-    gl.useProgram(circleGradientShaderProgram);
+    gl.uniform1f(circleGradientShaderProgram.size, circleGradientShaderProgram.canvas.width);
 
     var squareVertexPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
@@ -586,9 +583,5 @@ Disc.prototype.drawCircleGradient = function (color0, color1, r0, r1, circleGrad
     gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
     gl.vertexAttribPointer(circleGradientShaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-
-
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
-
-
 };

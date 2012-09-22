@@ -52,7 +52,7 @@
 			uniform vec2 vTextureOffset;
 
 			void main(void) {
-			gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t) - vTextureOffset);
+				gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t) - vTextureOffset);
 			}
     </script>
     <script id="shader-basic-vertex" type="x-shader/x-vertex">
@@ -66,11 +66,11 @@
 			precision mediump float;
 
 			uniform vec4 uColor0, uColor1;
-            uniform float uR0, uR1, uWidth, uHeight;
+            uniform float uR0, uR1, uSize;
 
 			void main(void) {
-                float x = (gl_FragCoord.x + 0.5) / uWidth * 2.0 - 1.0;
-                float y = (gl_FragCoord.y + 0.5) / uHeight * 2.0 - 1.0;
+                float x = gl_FragCoord.x / uSize * 2.0 - 1.0;
+                float y = gl_FragCoord.y / uSize * 2.0 - 1.0;
                 float radiusSquared = x * x + y * y;
                 float r0Squared = uR0 * uR0;
                 float r1Squared = uR1 * uR1;
@@ -81,8 +81,6 @@
                     float ratio = (radiusSquared - r0Squared) / (r1Squared - r0Squared);
 			        gl_FragColor = mix(uColor0, uColor1, ratio);
                 }
-
-            //     gl_FragColor = vec4(gl_FragCoord.x/1000.0, gl_FragCoord.y/1000.0, 0, 1);
 			}
     </script>
     <script type="text/javascript">
@@ -97,7 +95,7 @@
                 canvas.height = parentWidth;
                 canvas.style.top = (parentHeight - canvas.height) / 2;
 
-                gl = doc.canvas.getContext("experimental-webgl");
+                gl = canvas.getContext("experimental-webgl");
                 gl.viewportWidth = canvas.width;
                 gl.viewportHeight = canvas.height;
             } catch (e) {
@@ -191,9 +189,9 @@
             circleGradientShaderProgram.color1 = gl.getUniformLocation(circleGradientShaderProgram, "uColor1");
             circleGradientShaderProgram.r0 = gl.getUniformLocation(circleGradientShaderProgram, "uR0");
             circleGradientShaderProgram.r1 = gl.getUniformLocation(circleGradientShaderProgram, "uR1");
-            circleGradientShaderProgram.width = gl.getUniformLocation(circleGradientShaderProgram, "uWidth");
-            circleGradientShaderProgram.height = gl.getUniformLocation(circleGradientShaderProgram, "uHeight");
-
+            circleGradientShaderProgram.size = gl.getUniformLocation(circleGradientShaderProgram, "uSize");
+ 
+			circleGradientShaderProgram.canvas = doc.canvas;
         }
 
         var disc;
@@ -319,10 +317,47 @@
             var sceneTime = new Date().getTime();
             animate();
             var animateTime = new Date().getTime();
-
-            doc.framerate.innerHTML = "draw: " + (sceneTime - startTime) + " animate: " + (animateTime - sceneTime) + " loop: " + (animateTime - lastTickTime);
+	
+            doc.framerateText.innerHTML = Math.round(10000 / (animateTime - lastTickTime)) / 10 + "";
             lastTickTime = animateTime;
+
+			drawMinimizeControlsButton();
         }
+
+		function drawMinimizeControlsButton() {
+			var ctx=doc.controlsPanelMinimizeCanvas.getContext("2d");
+			var size = doc.controlsPanelMinimizeSize;
+
+			ctx.fillStyle="#a00";
+			ctx.clearRect(0, 0, size+1, size+1);
+
+			ctx.fillStyle="#444";
+			ctx.strokeStyle="#666";
+
+			ctx.beginPath();
+ 			ctx.moveTo(0, 0);
+
+ 			if (doc.areControlsMinimized)
+				ctx.lineTo(size, 0);
+			else
+				ctx.lineTo(0, size);
+
+			ctx.lineTo(size, size);
+
+			ctx.closePath();
+			ctx.fill();
+			ctx.stroke();
+		}
+
+		function handleMinimizeControlsButtonClick(event) {
+			doc.areControlsMinimized = !doc.areControlsMinimized;
+			doc.controlsBody.style.display = doc.areControlsMinimized ? "none" : "block";
+			doc.framerate.style.display = doc.areControlsMinimized ? "none" : "block";
+	//		doc.controlsBody.style.display = doc.areControlsMinimized ? "none" : "block";
+			doc.controlsPanelMinimize.style.position = doc.areControlsMinimized ? "relative" : "absolute"
+		}
+
+
 
         var isDragging = false;
         var isDraggingAngle = false;
@@ -370,7 +405,7 @@
         }
 
         function mousePos() {
-            return new Complex([2 * window.event.clientX / canvas.width - 1, 1 - 2 * window.event.clientY / canvas.height]);
+            return new Complex([2 * window.event.clientX / doc.canvas.width - 1, 1 - 2 * window.event.clientY / doc.canvas.height]);
         }
 
         function reset() {
@@ -396,7 +431,7 @@
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.enable(gl.DEPTH_TEST);
 
-            canvas.onmousedown = handleMouseDown;
+            doc.canvas.onmousedown = handleMouseDown;
             document.onmouseup = handleMouseUp;
             document.onmousemove = handleMouseMove;
 
@@ -410,8 +445,18 @@
         function Doc() {
             this.canvas = document.getElementById("canvas");
             this.controls = document.getElementById("controls");
-            this.output = document.getElementById("output");
-            this.framerate = document.getElementById("framerate");
+
+            this.controlsPanelMinimize = document.getElementById("controlsPanelMinimize");
+            this.controlsPanelMinimizeCanvas = document.getElementById("controlsPanelMinimizeCanvas");
+			this.controlsPanelMinimizeCanvas.onclick = handleMinimizeControlsButtonClick;
+			this.controlsPanelMinimizeSize = this.controlsPanelMinimize.clientWidth;
+            this.areControlsMinimized = false;
+
+            this.controlsBody = document.getElementById("controlsBody");
+
+			this.output = document.getElementById("output");
+            this.framerate = document.getElementById("controlsFramerate");
+            this.framerateText = document.getElementById("controlsFramerateText");
             this.pField = document.getElementById("p");
             this.qField = document.getElementById("q");
             this.resetButton = document.getElementById("reset");
@@ -457,33 +502,67 @@
             top: 0;
             left: 0;
         }
-        #controls
+        #controlsPanel
         {
             position: absolute;
             bottom: 0;
-            right: 0;
-            width: 250px;
-            margin: 1 1 1 1;
+            left: 0;
+            margin: 0 0 0 0;
             border-style: solid;
             border-width: 1px;
             border-color: #666;
             background-color: #222;
-            padding: 0 0 0 10px;
+        }
+        #controlsPanelMinimize
+        {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            margin: 2 2 2 2;
+        }
+        #controlsFramerate
+        {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            font-size: 10px;
+            font-weight: 200;
+            color: #999;
+      }
+        #controlsFramerateText
+        {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            margin: 0 0 0 0;
+      }
+        #controlsBody
+        {
+            position: static;
+            margin: 0 0 0 0;
+            padding: 0 10 0 10px;
         }
     </style>
 </head>
 <body onload="webGLStart();">
     <canvas id="canvas" width="205" height="205">If your browser doesn't support canvas, it def won't run WebGL.</canvas>
-    <div id="controls">
-        <p id="framerate">
-        </p>
-        <p id="output">
-        </p>
-        <p>
-            <input type='text' id='p' value='5' size='5' />
-            <input type='text' id='q' value='5' size='5' />
-            <input type='button' id='reset' value="reset" />
-        </p>
+    <div id="controlsPanel">
+		<div id="controlsPanelMinimize">
+     		<canvas <canvas id="controlsPanelMinimizeCanvas" /> 
+		</div>
+		<div id="controlsFramerate">
+ 			<p id="controlsFramerateText" />
+		</div>
+		<div id="controlsBody">
+		    <p id="output" />
+		    <p>
+		        <input type='text' id='p' value='5' size='5' />
+		        <input type='text' id='q' value='5' size='5' />
+		        <input type='button' id='reset' value="reset" />
+		    </p>
+		</div>
     </div>
 </body>
 </html>
