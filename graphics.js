@@ -5,10 +5,8 @@ var circleGradientShaderProgram;
 
 var disc;
 var textureOffset = Complex.zero;
-//	var motionOffset = Complex.zero;
 var motionIncrement = Complex.zero;
 var motionMobius = Mobius.identity;
-//	var angleOffset = 0;
 var angleIncrement = 0;
 
 var startTime = new Date().getTime();
@@ -200,24 +198,7 @@ function animate() {
     lastTime = timeNow;
 }
 
-function tick() {
-    requestAnimFrame(tick);
-
-    var startTime = new Date().getTime();
-    drawScene();
-    var sceneTime = new Date().getTime();
-    animate();
-    var animateTime = new Date().getTime();
-
-    doc.framerateText.innerHTML =  "init:&nbsp;" + (initTime / 1000).toFixed(2) + "s&nbsp;&nbsp;" + (1000 / (animateTime - lastTickTime)).toFixed(1) + "fps";
-    lastTickTime = animateTime;
-
-	drawMinimizeControlsButton();
-}
-
 function webGLStart() {
-	doc = new Doc();
-
     initGL(doc.canvas);
     initShaders();
 
@@ -232,6 +213,6 @@ function webGLStart() {
     document.onmouseup = handleMouseUp;
     document.onmousemove = handleMouseMove;
 
-    tick();
+
 }
 

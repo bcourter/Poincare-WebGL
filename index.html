@@ -8,6 +8,11 @@
     <script type="text/javascript" src="Circline.js"></script>
     <script type="text/javascript" src="Disc.js"></script>
     <script type="text/javascript" src="jpg.js"></script>
+
+    <script type="text/javascript" src="graphics.js"></script>
+    <script type="text/javascript" src="events.js"></script>
+    <script type="text/javascript" src="extensions.js"></script>
+
     <script id="shader-mobius-vertex" type="x-shader/x-vertex">
 			attribute vec3 aVertexPosition;
 			attribute vec2 aTextureCoord;
@@ -84,247 +89,7 @@
 			}
     </script>
     <script type="text/javascript">
-        var gl;
-
-        function initGL(canvas) {
-            try {
-                var parentWidth = canvas.parentNode.clientWidth;
-                var parentHeight = canvas.parentNode.clientHeight;
-
-                canvas.width = parentWidth;
-                canvas.height = parentWidth;
-                canvas.style.top = (parentHeight - canvas.height) / 2;
-
-                gl = canvas.getContext("experimental-webgl");
-                gl.viewportWidth = canvas.width;
-                gl.viewportHeight = canvas.height;
-            } catch (e) {
-                output("Exception initializing WebGL.");
-            }
-            if (!gl) {
-                output("Could not initialize WebGL.");
-            }
-        }
-
-        function getShader(gl, id) {
-            var shaderScript = document.getElementById(id);
-            if (!shaderScript) {
-                return null;
-            }
-
-            var str = "";
-            var k = shaderScript.firstChild;
-            while (k) {
-                if (k.nodeType == 3) {
-                    str += k.textContent;
-                }
-                k = k.nextSibling;
-            }
-
-            var shader;
-            if (shaderScript.type == "x-shader/x-fragment") {
-                shader = gl.createShader(gl.FRAGMENT_SHADER);
-            } else if (shaderScript.type == "x-shader/x-vertex") {
-                shader = gl.createShader(gl.VERTEX_SHADER);
-            } else {
-                return null;
-            }
-
-            gl.shaderSource(shader, str);
-            gl.compileShader(shader);
-
-            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                output(gl.getShaderInfoLog(shader));
-                return null;
-            }
-
-            return shader;
-        }
-
-        var mobiusShaderProgram;
-        var circleGradientShaderProgram;
-        function initShaders() {
-            var mobiusVertexShader = getShader(gl, "shader-mobius-vertex");
-            var mobiusFragmentShader = getShader(gl, "shader-mobius-fragment");
-
-            mobiusShaderProgram = gl.createProgram();
-            gl.attachShader(mobiusShaderProgram, mobiusVertexShader);
-            gl.attachShader(mobiusShaderProgram, mobiusFragmentShader);
-            gl.linkProgram(mobiusShaderProgram);
-
-            if (!gl.getProgramParameter(mobiusShaderProgram, gl.LINK_STATUS)) {
-                output("Could not initialise shaders");
-            }
-
-            mobiusShaderProgram.vertexPositionAttribute = gl.getAttribLocation(mobiusShaderProgram, "aVertexPosition");
-            gl.enableVertexAttribArray(mobiusShaderProgram.vertexPositionAttribute);
-
-            mobiusShaderProgram.textureCoordAttribute = gl.getAttribLocation(mobiusShaderProgram, "aTextureCoord");
-            gl.enableVertexAttribArray(mobiusShaderProgram.textureCoordAttribute);
-
-            mobiusShaderProgram.samplerUniform = gl.getUniformLocation(mobiusShaderProgram, "uSampler");
-            mobiusShaderProgram.textureOffset = gl.getUniformLocation(mobiusShaderProgram, "vTextureOffset");
-            mobiusShaderProgram.mobiusA = gl.getUniformLocation(mobiusShaderProgram, "uMobiusA");
-            mobiusShaderProgram.mobiusB = gl.getUniformLocation(mobiusShaderProgram, "uMobiusB");
-            mobiusShaderProgram.mobiusC = gl.getUniformLocation(mobiusShaderProgram, "uMobiusC");
-            mobiusShaderProgram.mobiusD = gl.getUniformLocation(mobiusShaderProgram, "uMobiusD");
-
-            // For circle gradient
-            var basicVertexShader = getShader(gl, "shader-basic-vertex");
-            var circleGradientVertexShader = getShader(gl, "shader-circlegradient-fragment");
-
-            circleGradientShaderProgram = gl.createProgram();
-            gl.attachShader(circleGradientShaderProgram, basicVertexShader);
-            gl.attachShader(circleGradientShaderProgram, circleGradientVertexShader);
-            gl.linkProgram(circleGradientShaderProgram);
-
-            if (!gl.getProgramParameter(circleGradientShaderProgram, gl.LINK_STATUS)) {
-                output("Could not initialise CircleGradientShaderProgram");
-            }
-
-            circleGradientShaderProgram.vertexPositionAttribute = gl.getAttribLocation(circleGradientShaderProgram, "aVertexPosition");
-            gl.enableVertexAttribArray(circleGradientShaderProgram.vertexPositionAttribute);
-
-            circleGradientShaderProgram.color0 = gl.getUniformLocation(circleGradientShaderProgram, "uColor0");
-            circleGradientShaderProgram.color1 = gl.getUniformLocation(circleGradientShaderProgram, "uColor1");
-            circleGradientShaderProgram.r0 = gl.getUniformLocation(circleGradientShaderProgram, "uR0");
-            circleGradientShaderProgram.r1 = gl.getUniformLocation(circleGradientShaderProgram, "uR1");
-            circleGradientShaderProgram.size = gl.getUniformLocation(circleGradientShaderProgram, "uSize");
- 
-			circleGradientShaderProgram.canvas = doc.canvas;
-        }
-
-        var disc;
-        function initGeometry() {
-            var p = parseInt(doc.pField.value);
-            var q = parseInt(doc.qField.value);
-			var image = doc.imageField.value;
-            var circleLimit = parseFloat(doc.circleLimitField.value);
-            disc = new Disc(new Region(p, q), image, circleLimit, true);
-        }
-
-        var mvMatrix = mat4.create();
-        var mvMatrixStack = [];
-        var pMatrix = mat4.create();
-
-        function mvPushMatrix() {
-            var copy = mat4.create();
-            mat4.set(mvMatrix, copy);
-            mvMatrixStack.push(copy);
-        }
-
-        function mvPopMatrix() {
-            if (mvMatrixStack.length == 0) {
-                throw "Invalid popMatrix!";
-            }
-            mvMatrix = mvMatrixStack.pop();
-        }
-
-        var textureOffset = Complex.zero;
-        //	var motionOffset = Complex.zero;
-        var motionIncrement = Complex.zero;
-        var motionMobius = Mobius.identity;
-        //	var angleOffset = 0;
-        var angleIncrement = 0;
-
-        function drawScene() {
-            gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-            gl.enable(gl.BLEND);
-            gl.disable(gl.DEPTH_TEST); 			// Turn Depth Testing Off
-
-            //      mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
-            mat4.ortho(-1, 1, -1, 1, 0.1, 100.0, pMatrix);
-            mat4.identity(mvMatrix);
-            mat4.translate(mvMatrix, [0.0, 0.0, -5.0]);
-
-            disc.draw(motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram);
-        }
-
-        var startTime = 0;
-        var lastTime = 0;
-
-        function animate() {
-            var timeNow = new Date().getTime();
-            if (startTime != 0) {
-                var elapsed = timeNow - startTime;
-                elapsed *= 0.00001;
-
-                sample();
-
-                textureOffset = new Complex([Math.cos(3.0 * elapsed), Math.sin(2.0 * elapsed)]);
-
-                var motionMobiusIncrement = Mobius.multiply(
-						Mobius.createRotation(angleIncrement),
-						Mobius.createDiscTranslation(Complex.zero, motionIncrement)
-					);
-
-                motionMobius = Mobius.multiply(
-						motionMobiusIncrement,
-						motionMobius
-					);
-
-                var flipEdge;
-                var currentFace = disc.initialFace.transform(motionMobius);
-                do {
-                    flipEdge = null;
-                    flipTrans = Mobius.identity;
-
-                    for (var i = 0; i < currentFace.edges.length; i++) {
-                        var edge = currentFace.edges[i];
-                        if (edge.isConvex()) {
-                            flipEdge = edge;
-                            break;
-                        }
-                    }
-
-                    var image;
-                    if (flipEdge != null) {
-                        flipTrans = Mobius.multiply(flipTrans, flipEdge.Circline.asMobius());
-                        image = currentFace.conjugate().transform(flipTrans);
-
-                        currentFace = image;
-                    }
-
-                } while (flipEdge != null);
-
-                // curentFace seems to accumulate rounoff error; create a new one from it's new position
-                var toCenter = Mobius.createDiscAutomorphism(currentFace.center, 0);
-                var angle = currentFace.vertices[0].transform(toCenter).argument();
-                var seedFaceTrans = Mobius.multiply(
-						Mobius.createDiscAutomorphism(currentFace.center, 0),
-						Mobius.createRotation(angle - disc.initialFace.vertices[0].argument())
-					);
-
-                motionMobius = seedFaceTrans;
-            } else {
-                startTime = timeNow;
-            }
-            lastTime = timeNow;
-        }
-
-        var lastTickTime = new Date().getTime();
-        function tick() {
-            requestAnimFrame(tick);
-
-            var startTime = new Date().getTime();
-            drawScene();
-            var sceneTime = new Date().getTime();
-            animate();
-            var animateTime = new Date().getTime();
-	
-            doc.framerateText.innerHTML =  "init:&nbsp;" + round(initTime / 1000, 2) + "s&nbsp;&nbsp;fps:&nbsp;" + round(1000 / (animateTime - lastTickTime), 1) + "";
-            lastTickTime = animateTime;
-
-			drawMinimizeControlsButton();
-        }
-
-		function round(t, n) {
-			var f = Math.pow(10, n);
-			return Math.round(t * f) / f;
-		}
+	//	var doc;
 
 		function drawMinimizeControlsButton() {
 			var ctx=doc.controlsPanelMinimizeCanvas.getContext("2d");
@@ -337,9 +102,9 @@
 			ctx.strokeStyle="#666";
 
 			ctx.beginPath();
- 			ctx.moveTo(0, 0);
+			ctx.moveTo(0, 0);
 
- 			if (doc.areControlsMinimized)
+			if (doc.areControlsMinimized)
 				ctx.lineTo(size, 0);
 			else
 				ctx.lineTo(0, size);
@@ -351,118 +116,62 @@
 			ctx.stroke();
 		}
 
-		function handleMinimizeControlsButtonClick(event) {
-			var x = event.clientX;
-			var y = event.clientY;
-			//var bx = doc.controlsPanelMinimize.x;
-			doc.areControlsMinimized = !doc.areControlsMinimized;
-			doc.controlsBody.style.display = doc.areControlsMinimized ? "none" : "block";
-			doc.controlsPanelMinimize.style.position = doc.areControlsMinimized ? "relative" : "absolute"
+		function tick() {
+			requestAnimFrame(tick);
+
+			drawScene();
+			animate();
+
+			var animateTime = new Date().getTime();
+			doc.framerateText.innerHTML =  "init:&nbsp;" + (initTime / 1000).toFixed(2) + "s&nbsp;&nbsp;" + (1000 / (animateTime - lastTickTime)).toFixed(1) + "fps";
+			lastTickTime = animateTime;
+
+			drawMinimizeControlsButton();
 		}
 
-        var isDragging = false;
-        var isDraggingAngle = false;
-        var thisMousePos = Complex.zero;
-        var initialMousePos = Complex.zero;
+function recenter(event) {
+	motionIncrement = Complex.zero;
+	angleIncrement = 0;
+	motionMobius = Mobius.identity;
+}
 
-        function handleMouseDown(event) {
-            isDragging = true;
-            thisMousePos = mousePos(event)
-            if (thisMousePos.modulusSquared() > 0.98) {
-                isDraggingAngle = true;
-            }
+		function output(text) {
+			doc.output.innerHTML = text;
+		}
 
-            initialMousePos = thisMousePos;
-        }
+		window.onload = window.onresize = function () {
+			initGL(doc.canvas);
+		}
 
-        function handleMouseUp(event) {
-            isDragging = false;
-            isDraggingAngle = false;
-        }
+		function start() {
+			doc = new Doc();
+			webGLStart();
+			tick();
+		}
 
-        function handleMouseMove() {
-            if (!isDragging) {
-                return;
-            }
+		var Doc = function() {
+			this.canvas = document.getElementById("canvas");
+			this.controls = document.getElementById("controls");
 
-            thisMousePos = mousePos();
-        }
-
-        function sample() {
-            if (!isDragging) {
-                return;
-            }
-
-            if (isDraggingAngle) {
-                angleIncrement = thisMousePos.argument() - initialMousePos.argument();
-            } else {
-                if (thisMousePos.modulusSquared() > 0.98) {
-                    thisMousePos = Complex.createPolar(0.98, thisMousePos.argument());
-                }
-                motionIncrement = Complex.subtract(thisMousePos, initialMousePos);
-            }
-
-            initialMousePos = thisMousePos;
-        }
-
-        function mousePos() {
-            return new Complex([2 * window.event.clientX / doc.canvas.width - 1, 1 - 2 * window.event.clientY / doc.canvas.height]);
-        }
-
-		var initTime;
-        function reset() {
-            var startTime = new Date().getTime();
-            initGeometry();
-            initTime = new Date().getTime() - startTime;
-       }
-
-        function output(text) {
-            doc.output.innerHTML = text;
-        }
-
-        var doc;
-        function webGLStart() {
-            doc = new Doc();
-            initGL(doc.canvas);
-            initShaders();
-
-            reset();
-
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.enable(gl.DEPTH_TEST);
-
-            doc.canvas.onmousedown = handleMouseDown;
-            document.onmouseup = handleMouseUp;
-            document.onmousemove = handleMouseMove;
-
-            tick();
-        }
-
-        window.onload = window.onresize = function () {
-            initGL(doc.canvas);
-        }
-
-        function Doc() {
-            this.canvas = document.getElementById("canvas");
-            this.controls = document.getElementById("controls");
-
-            this.controlsPanelMinimize = document.getElementById("controlsPanelMinimize");
-            this.controlsPanelMinimizeCanvas = document.getElementById("controlsPanelMinimizeCanvas");
-			this.controlsPanelMinimize.onclick = handleMinimizeControlsButtonClick;
+			this.controlsPanelMinimize = document.getElementById("controlsPanelMinimize");
+			this.controlsPanelMinimizeCanvas = document.getElementById("controlsPanelMinimizeCanvas");
+			this.controlsPanelMinimizeCanvas.onclick = handleMinimizeControlsButtonClick;
 			this.controlsPanelMinimizeSize = this.controlsPanelMinimize.clientWidth;
-            this.areControlsMinimized = false;
+			this.areControlsMinimized = false;
 
-            this.controlsBody = document.getElementById("controlsBody");
+			this.controlsBody = document.getElementById("controlsBody");
 
 			this.output = document.getElementById("output");
-            this.framerateText = document.getElementById("controlsFramerateText");
-            this.pField = document.getElementById("p");
-            this.qField = document.getElementById("q");
-            this.circleLimitField = document.getElementById("circleLimit");
-            this.imageField = document.getElementById("image");
-            this.resetButton = document.getElementById("reset");
-            this.resetButton.onclick = reset;
-        }
+			this.framerateText = document.getElementById("controlsFramerateText");
+			this.pField = document.getElementById("p");
+			this.qField = document.getElementById("q");
+			this.circleLimitField = document.getElementById("circleLimit");
+			this.imageField = document.getElementById("image");
+			this.resetButton = document.getElementById("reset");
+			this.resetButton.onclick = initGeometry;
+			this.recenterButton = document.getElementById("recenter");
+			this.recenterButton.onclick = recenter;
+		};
 
     </script>
     <style type="text/css">
@@ -562,7 +271,7 @@
 			
 </style>
 </head>
-<body onload="webGLStart();">
+<body onload="start();">
     <canvas id="canvas" width="205" height="205">If your browser doesn't support canvas, it def won't run WebGL.</canvas>
     <div id="controlsPanel">
 		<div id="controlsPanelMinimize">
@@ -577,7 +286,8 @@
 			<br />			
 		        <input type='text' id='image' value="LawsonFront.jpg" size='15'/>
 			</p> <p>
-		        <input type='button' id='reset' value="update" style="text-align:right" />
+		        <input type='button' id='reset' value="update" />
+		        <input type='button' id='recenter' value="recenter" />
 		    </p>
 			<hr />
 			<div id="controlsTextArea">

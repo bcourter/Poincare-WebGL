@@ -57,5 +57,9 @@ function sample() {
 }
 
 function mousePos() {
-    return new Complex([2 * window.event.clientX / doc.canvas.width - 1, 1 - 2 * window.event.clientY / doc.canvas.height]);
+ 	var coords = doc.canvas.relMouseCoords(window.event);
+	var x = coords.x;
+	var y = coords.y;
+
+   return new Complex([2 * x / doc.canvas.width - 1, 1 - 2 * y / doc.canvas.height]);
 }
