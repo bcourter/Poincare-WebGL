@@ -86,7 +86,7 @@ FloatArrayAnimator.prototype.calculate = function (ratio) {
 }
 
 
-function MobiusAnimator(object, duration, v1) {
+function MobiusAnimator(object, duration, v1, p) {
 	this.object = object;
     this.duration = duration;
     this.v0 = window[this.object];
@@ -94,20 +94,34 @@ function MobiusAnimator(object, duration, v1) {
     
     this.startTime = new Date().getTime();
     MobiusAnimator.prototype.animators.push(this);
+    
+    this.translation0 = Complex.divide(this.v0.b.negative(), this.v0.d);
+    this.rotation0 = Complex.divide(this.v0.a, this.v0.d).argument();
+    this.translation1 = Complex.divide(this.v1.b.negative(), this.v1.d);
+    this.rotation1 = Complex.divide(this.v1.a, this.v1.d).argument();
+    
+    var angle = 2 * Math.PI / p;
+    this.rotation1 = this.rotation0 + ((this.rotation1 - this.rotation0 + angle / 2 + 2 * Math.PI) % angle) - angle / 2;
 }
 
 MobiusAnimator.prototype = new Animator();
 MobiusAnimator.prototype.constructor = MobiusAnimator;
 
 MobiusAnimator.prototype.calculate = function (ratio) {
-		var transformedCenter = Complex.zero.transform(this.v0);
-        var toCenter = Mobius.createDiscAutomorphism(transformedCenter, 0);
-        var angle = Complex.one.scale(0.5).transform(this.v0).transform(toCenter).argument();
-        return Mobius.multiply(
-				Mobius.createDiscAutomorphism(transformedCenter.scale(ratio), 0),
-				Mobius.createRotation(angle * ratio)
-			);
+	var translation = Complex.add(this.translation1.scale(ratio), this.translation0.scale(1 - ratio)).negative();
+	var rotation = Complex.createPolar(1, this.rotation1 * ratio + this.rotation0 * (1 - ratio)).negative();
+	return new Mobius(
+		rotation,
+		translation.negative(),
+		Complex.multiply(translation.conjugate(), rotation),
+		Complex.one.negative()
+	);		
 
+/*	return Mobius.multiply(
+		Mobius.createDiscAutomorphism(Complex.add(this.translation1.scale(ratio), this.translation0.scale(1 - ratio)), 0),
+		Mobius.createRotation(this.rotation1 * ratio + this.rotation0 * (1 - ratio))
+));
+*/	
 
 //	return Mobius.add(this.v1.scale(ratio), this.v0.scale(1 - ratio));
 }

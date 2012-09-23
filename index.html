@@ -150,8 +150,7 @@
 				motionIncrement = Complex.zero;
 				angleIncrement = 0;
 				
-		//		new ComplextAnimator("motionOffset", 1, Complex.zero);
-		//		new FloatAnimator("motionOffset", 1, Complex.zero);
+				new MobiusAnimator("motionMobius", 1, Mobius.identity, disc.region.p);
 			}
 
 			function limitRotationLeft(event) {
