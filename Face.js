@@ -354,11 +354,11 @@ Face.prototype.conjugate = function () {
         interiors[i + p] = Complex.conjugateArray(this.interiors[i + p]);
     }
 
-    return Face.createFromExisting(this, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, this.isFlipped);
+    return Face.createFromExisting(this, edges, center, vertices, edgeCenters, halfEdges, spines, dualEdges, interiors, !this.isFlipped);
 };
 
-Face.prototype.draw = function (motionMobius, textureOffset, texture, shaderProgram) {
-    gl.useProgram(mobiusShaderProgram);
+Face.prototype.draw = function (motionMobius, textureOffset, texture, shaderProgram, isInverting) {
+    gl.useProgram(shaderProgram);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
     gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, this.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -369,11 +369,14 @@ Face.prototype.draw = function (motionMobius, textureOffset, texture, shaderProg
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.uniform1i(shaderProgram.samplerUniform, 0);
-
+ 
     for (i = 0; i < this.indexBuffers.length; i++) {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffers[i]);
+	    gl.uniform1f(shaderProgram.isInverted, isInverting * ((Math.floor(i/4) + (this.isFlipped ? 0 : 1)) % 2));
+
         gl.drawElements(gl.TRIANGLE_STRIP, this.indexBuffers[i].numItems, gl.UNSIGNED_SHORT, 0);
     }
+
 };
 
 function Edge(Face, Circline, start, end) {

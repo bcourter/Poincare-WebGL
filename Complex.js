@@ -138,12 +138,30 @@ function Mobius(a, b, c, d) {
 
 Mobius.identity = new Mobius(Complex.one, Complex.zero, Complex.zero, Complex.one);
 
-Mobius.multiply = function(m2, m1) {
+Mobius.multiply = function(m1, m2) {
     return new Mobius(
-        Complex.add(Complex.multiply(m2.a, m1.a), Complex.multiply(m2.b, m1.c)), 
-        Complex.add(Complex.multiply(m2.a, m1.b), Complex.multiply(m2.b, m1.d)), 
-        Complex.add(Complex.multiply(m2.c, m1.a), Complex.multiply(m2.d, m1.c)), 
-        Complex.add(Complex.multiply(m2.c, m1.b), Complex.multiply(m2.d, m1.d))
+        Complex.add(Complex.multiply(m1.a, m2.a), Complex.multiply(m1.b, m2.c)), 
+        Complex.add(Complex.multiply(m1.a, m2.b), Complex.multiply(m1.b, m2.d)), 
+        Complex.add(Complex.multiply(m1.c, m2.a), Complex.multiply(m1.d, m2.c)), 
+        Complex.add(Complex.multiply(m1.c, m2.b), Complex.multiply(m1.d, m2.d))
+    );
+};
+
+Mobius.add = function(m1, m2) {
+    return new Mobius(
+        Complex.add(m1.a, m2.a), 
+        Complex.add(m1.b, m2.b), 
+        Complex.add(m1.c, m2.c), 
+        Complex.add(m1.d, m2.d) 
+    );
+};
+
+Mobius.prototype.scale = function(s) {
+    return new Mobius(
+        this.a.scale(s),
+        this.b.scale(s),
+        this.c.scale(s),
+        this.d.scale(s)
     );
 };
 

@@ -8,11 +8,14 @@ var textureOffset = Complex.zero;
 var motionIncrement = Complex.zero;
 var motionMobius = Mobius.identity;
 var angleIncrement = 0;
+var isInverting = 0;
 
 var startTime = new Date().getTime();
 var lastTime;
 var initTime;
 var lastTickTime;
+
+var maxVertexTextureImageUnits;
 
 function initGL(canvas) {
     try {
@@ -32,6 +35,7 @@ function initGL(canvas) {
     if (!gl) {
         output("Could not initialize WebGL.");
     }
+
 }
 
 function getShader(gl, id) {
@@ -43,7 +47,7 @@ function getShader(gl, id) {
     var str = "";
     var k = shaderScript.firstChild;
     while (k) {
-        if (k.nodeType == 3) {
+        if (k.nodeType == 3) {angleIncrement
             str += k.textContent;
         }
         k = k.nextSibling;
@@ -89,7 +93,8 @@ function initShaders() {
     gl.enableVertexAttribArray(mobiusShaderProgram.textureCoordAttribute);
 
     mobiusShaderProgram.samplerUniform = gl.getUniformLocation(mobiusShaderProgram, "uSampler");
-    mobiusShaderProgram.textureOffset = gl.getUniformLocation(mobiusShaderProgram, "vTextureOffset");
+    mobiusShaderProgram.textureOffset = gl.getUniformLocation(mobiusShaderProgram, "uTextureOffset");
+    mobiusShaderProgram.isInverted = gl.getUniformLocation(mobiusShaderProgram, "uIsInverted");
     mobiusShaderProgram.mobiusA = gl.getUniformLocation(mobiusShaderProgram, "uMobiusA");
     mobiusShaderProgram.mobiusB = gl.getUniformLocation(mobiusShaderProgram, "uMobiusB");
     mobiusShaderProgram.mobiusC = gl.getUniformLocation(mobiusShaderProgram, "uMobiusC");
@@ -136,7 +141,7 @@ function drawScene() {
     gl.enable(gl.BLEND);
     gl.disable(gl.DEPTH_TEST); 			
 
-    disc.draw(motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram);
+    disc.draw(motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram, isInverting);
 }
 
 function animate() {

@@ -4,7 +4,7 @@ function Circline(a, b, c) {
 	this.c = c;
 	
 	if(isNaN(a) || isNaN(b.data[0] || isNaN(b.data[1]) || isNaN(c)))	{
-		var d = 0; 
+		var d = 0; // tbd throw
 	}
 }
 

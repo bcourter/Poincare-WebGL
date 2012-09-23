@@ -1,3 +1,4 @@
+// http://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element
 HTMLCanvasElement.prototype.relMouseCoords = function (event){
 	var totalOffsetX = 0;
 	var totalOffsetY = 0;
