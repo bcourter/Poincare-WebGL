@@ -31,12 +31,12 @@ function handleMouseUp(event) {
     isDraggingAngle = false;
 }
 
-function handleMouseMove() {
+function handleMouseMove(event) {
     if (!isDragging) {
         return;
     }
 
-    thisMousePos = mousePos();
+    thisMousePos = mousePos(event);
 }
 
 function sample() {
@@ -56,9 +56,10 @@ function sample() {
     initialMousePos = thisMousePos;
 }
 
-function mousePos() {
- 	var coords = doc.canvas.relMouseCoords(window.event);
-	var x = coords.x;
+function mousePos(event) {
+    var coords = doc.canvas.relMouseCoords(event);
+//    var coords = doc.canvas.relMouseCoords(window.event);
+    var x = coords.x;
 	var y = coords.y;
 
    return new Complex([2 * x / doc.canvas.width - 1, 1 - 2 * y / doc.canvas.height]);
