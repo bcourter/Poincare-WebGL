@@ -200,26 +200,26 @@ Mobius.prototype.conjugateTranspose = function() {
 
 function ComplexCollection() {
 	this.sectorCount = 64;
-	this.annulusCount = 256;
+	this.annulusCount = 128;
 	
 	//new SortedList<int, List<Complex>>[sectorCount]
-	this.sectors = [sectorCount];
+	this.sectors = [this.sectorCount];
 	this.clear();
 }
 
 ComplexCollection.prototype.add = function(c) {
 	var sector = this.sector(c);
-	var annulus = Math.Floor(c.modulusSquared() * this.annulusCount);
+	var annulus = Math.floor(c.modulusSquared() * this.annulusCount);
 	
 	this.sectors[sector][annulus].push(c);
 }
 
-ComplexCollection.prototype.containsValue = function(c) {
+ComplexCollection.prototype.contains = function(c) {
 	var sector = this.sector(c);
-	var annulus = Math.Floor(c.modulusSquared() * this.annulusCount);
+	var annulus = Math.floor(c.modulusSquared() * this.annulusCount);
 	
-	for (var i = 0; i < sectors[sector][annulus].length; i++) {
-		if (Complex.equals(sectors[sector][annulus][i], c))
+	for (var i = 0; i < this.sectors[sector][annulus].length; i++) {
+		if (Complex.equals(this.sectors[sector][annulus][i], c))
 			return true;
 	}
 	
@@ -236,7 +236,7 @@ ComplexCollection.prototype.clear = function() {
 }
 
 ComplexCollection.prototype.sector = function(complex) {
-	return Math.round(((complex.argument() + Math.PI) / (Math.PI * 2 / this.sectorCount)) % this.sectorCount);
+	return Math.floor(((complex.argument() + Math.PI) / (Math.PI * 2 / this.sectorCount)) % this.sectorCount);
 }
 
 	

@@ -18,8 +18,9 @@ function Disc(region, bitmapURL, circleLimit) {
 Disc.prototype.initFaces = function () {
     var seedFace = this.initialFace;
     var faceQueue = [seedFace];
-    var faceCenters = [seedFace.center];
-
+ //   var faceCenters = [seedFace.center];
+	var faceCenters = new ComplexCollection();
+	
     var count = 1;
     var minDist = 1;
     while (faceQueue.length > 0) {
@@ -51,9 +52,9 @@ Disc.prototype.initFaces = function () {
             if (image.center.modulusSquared() > this.circleLimit) 
                 continue;
 
-            var isDone = false;
+ /*            var isDone = false;
 
-            for (var j = 0; j < faceCenters.length; j++) {
+           for (var j = 0; j < faceCenters.length; j++) {
                 if (Complex.equals(faceCenters[j], image.center)) {
                     isDone = true;
                     break;
@@ -62,10 +63,13 @@ Disc.prototype.initFaces = function () {
             if (isDone) {
                 continue;
             }
+*/
+			if (faceCenters.contains(image.center))
+				continue;
 
             this.faces.push(image);
             faceQueue.push(image);
-            faceCenters.push(image.center);
+            faceCenters.add(image.center);
             count++;
         }
     }
