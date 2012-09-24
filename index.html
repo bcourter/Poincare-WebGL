@@ -181,8 +181,11 @@
 			var Doc = function() {
 			    //this.canvas.onmousedown = handleMouseDown;
 			    document.onmousedown = handleMouseDown;
-    			document.onmouseup = handleMouseUp;
+			    document.onmouseup = handleMouseUp;
 			    document.onmousemove = handleMouseMove;
+			    document.ontouchstart = handleMouseDown;
+			    document.ontouchend = handleMouseUp;
+			    document.ontouchmove = handleMouseMove;
 
 				this.canvas = document.getElementById("canvas");
 				this.controls = document.getElementById("controlsPanel");
