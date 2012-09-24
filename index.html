@@ -140,6 +140,7 @@
 				lastTickTime = animateTime;
 
 				drawMinimizeControlsButton();
+				window.scrollTo(0, 0);
 			}
 
 			function inverting(event) {
@@ -171,14 +172,20 @@
 			}
 			function start() {
 				doc = new Doc();
-				webGLStart();
+ 				document.body.scroll = "no";
+ 				webGLStart();
 				Animator.prototype.animators = [];
 				tick();
 			}
 
 			var Doc = function() {
+			    //this.canvas.onmousedown = handleMouseDown;
+			    document.onmousedown = handleMouseDown;
+    			document.onmouseup = handleMouseUp;
+			    document.onmousemove = handleMouseMove;
+
 				this.canvas = document.getElementById("canvas");
-				this.controls = document.getElementById("controls");
+				this.controls = document.getElementById("controlsPanel");
 
 				this.controlsPanelMinimize = document.getElementById("controlsPanelMinimize");
 				this.controlsPanelMinimizeCanvas = document.getElementById("controlsPanelMinimizeCanvas");
@@ -217,7 +224,15 @@
 				color: white;
 				font-family: 'Doppio One', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 				padding: 0px;
-				line-height: 22px;
+				overflow: hidden;
+				
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+				-khtml-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				-o-user-select: none;
+				user-select: none;
 			}
 
 			html, body {
@@ -313,7 +328,7 @@
 	<body onload="start();">
 		<canvas id="canvas" width="205" height="205">
 			If your browser doesn't support canvas, it def won't run WebGL.
-		</canvas>0
+		</canvas>
 		<div id="controlsPanel">
 			<div id="controlsPanelMinimize">
 				<canvas id="controlsPanelMinimizeCanvas"></canvas>

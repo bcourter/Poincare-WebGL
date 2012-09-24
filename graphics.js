@@ -213,11 +213,5 @@ function webGLStart() {
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
-
-    doc.canvas.onmousedown = handleMouseDown;
-    document.onmouseup = handleMouseUp;
-    document.onmousemove = handleMouseMove;
-
-
 }
 

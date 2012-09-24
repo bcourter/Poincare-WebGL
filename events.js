@@ -17,11 +17,16 @@ function handleMinimizeControlsButtonClick(event) {
 }
 
 function handleMouseDown(event) {
+	// TBD for some reason there's a selecatable region to the right of the panel when the canvas is used
+	// therefore we handle this on the document and manually exclude the panel
+	if (event.pageX < doc.controls.offsetWidth && event.pageY > doc.controls.offsetTop) 
+		return;
+    
     isDragging = true;
     thisMousePos = mousePos(event)
-    if (thisMousePos.modulusSquared() > 0.98) {
+    
+    if (thisMousePos.modulusSquared() > 0.99) 
         isDraggingAngle = true;
-    }
 
     initialMousePos = thisMousePos;
 }
@@ -58,7 +63,6 @@ function sample() {
 
 function mousePos(event) {
     var coords = doc.canvas.relMouseCoords(event);
-//    var coords = doc.canvas.relMouseCoords(window.event);
     var x = coords.x;
 	var y = coords.y;
 

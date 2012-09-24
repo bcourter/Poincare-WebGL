@@ -197,3 +197,46 @@ Mobius.prototype.conjugateTranspose = function() {
 	return new Mobius(this.a.conjugate(), this.c.conjugate(), this.b.conjugate(), this.d.conjugate());
 };
 
+
+function ComplexCollection() {
+	this.sectorCount = 64;
+	this.annulusCount = 256;
+	
+	//new SortedList<int, List<Complex>>[sectorCount]
+	this.sectors = [sectorCount];
+	this.clear();
+}
+
+ComplexCollection.prototype.add = function(c) {
+	var sector = this.sector(c);
+	var annulus = Math.Floor(c.modulusSquared() * this.annulusCount);
+	
+	this.sectors[sector][annulus].push(c);
+}
+
+ComplexCollection.prototype.containsValue = function(c) {
+	var sector = this.sector(c);
+	var annulus = Math.Floor(c.modulusSquared() * this.annulusCount);
+	
+	for (var i = 0; i < sectors[sector][annulus].length; i++) {
+		if (Complex.equals(sectors[sector][annulus][i], c))
+			return true;
+	}
+	
+	return false;
+}
+
+ComplexCollection.prototype.clear = function() {
+	for (var i = 0; i < this.sectorCount; i++) {
+		this.sectors[i] = [this.annulusCount];
+		for (var j = 0; j < this.annulusCount; j++) 
+			this.sectors[i][j] = [];
+	}
+	
+}
+
+ComplexCollection.prototype.sector = function(complex) {
+	return Math.round(((complex.argument() + Math.PI) / (Math.PI * 2 / this.sectorCount)) % this.sectorCount);
+}
+
+	
