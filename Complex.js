@@ -201,17 +201,18 @@ Mobius.prototype.conjugateTranspose = function() {
 function ComplexCollection() {
 	this.sectorCount = 64;
 	this.annulusCount = 128;
-	
-	//new SortedList<int, List<Complex>>[sectorCount]
 	this.sectors = [this.sectorCount];
 	this.clear();
+	this.max = 0;
 }
 
 ComplexCollection.prototype.add = function(c) {
 	var sector = this.sector(c);
-	var annulus = Math.floor(c.modulusSquared() * this.annulusCount);
+	var modulusSquared = c.modulusSquared();
+	var annulus = Math.floor(modulusSquared * this.annulusCount);
 	
 	this.sectors[sector][annulus].push(c);
+	this.max = Math.max(this.max, modulusSquared);
 }
 
 ComplexCollection.prototype.contains = function(c) {

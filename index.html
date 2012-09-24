@@ -136,7 +136,7 @@
 				animate();
 
 				var animateTime = new Date().getTime();
-				doc.framerateText.innerHTML = "init:&nbsp;" + (initTime / 1000).toFixed(2) + "s&nbsp;&nbsp;" + (1000 / (animateTime - lastTickTime)).toFixed(1) + "fps";
+				doc.framerateText.innerHTML = disc.maxRegions + "&nbsp;regions&nbsp;in&nbsp;" + (initTime / 1000).toFixed(2) + "s&nbsp;&nbsp;&nbsp;" + (1000 / (animateTime - lastTickTime)).toFixed(1) + "fps";
 				lastTickTime = animateTime;
 
 				drawMinimizeControlsButton();
@@ -200,6 +200,7 @@
 				this.pField = document.getElementById("p");
 				this.qField = document.getElementById("q");
 				this.circleLimitField = document.getElementById("circleLimit");
+				this.maxRegionsField = document.getElementById("maxRegions");
 				this.imageField = document.getElementById("image");
 				this.resetButton = document.getElementById("reset");
 				this.resetButton.onclick = initGeometry;
@@ -208,6 +209,7 @@
 
 				this.isInvertingCheckbox = document.getElementById("isInverting");
 				this.isInvertingCheckbox.onclick = inverting;
+				this.isHorizonCheckbox = document.getElementById("isHorizon");
 				this.limitRotationLeft = document.getElementById("limitRotationLeft");
 				this.limitRotationLeft.onclick = limitRotationLeft;
 				this.limitRotationRight = document.getElementById("limitRotationRight");
@@ -262,6 +264,7 @@
 			}
 			input [type='checkbox']  {
 				height: 4px;
+				line-height: 5px;
 			}
 			#canvas {
 				/*    width: 100%;LawsonFront
@@ -341,8 +344,9 @@
 				<input type='text' id='q' value='5' size='1' />
 				}
 				<br />
-				draw limit:
-				<input type='text' id='circleLimit' value='0.99' size='3' />
+				max radius: <input type='text' id='circleLimit' value='0.999' size='3' />
+				<br />
+				max regions: <input type='text' id='maxRegions' value='4096' size='3' />
 				<br />
 				<input type='text' id='image' value="LawsonFront.jpg" size='15'/>
 				<p>
@@ -350,6 +354,8 @@
 				</p>
 				<hr />
 				<label><input type='checkbox' id='isInverting' /> invert</label>
+				
+				<label><input type='checkbox' id='isHorizon' checked=true /> horizon</label>
 				
 				limit rotation: 
 				<input type='button' id='limitRotationLeft' value="left" />

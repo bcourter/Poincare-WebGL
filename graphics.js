@@ -129,8 +129,10 @@ function initGeometry() {
     var p = parseInt(doc.pField.value);
     var q = parseInt(doc.qField.value);
 	var image = doc.imageField.value;
+	doc.imageField.style.backgroundImage="url(" + image + ")";
     var circleLimit = parseFloat(doc.circleLimitField.value);
-    disc = new Disc(new Region(p, q), image, circleLimit, true);
+    var maxRegions = parseFloat(doc.maxRegionsField.value);
+    disc = new Disc(new Region(p, q), image, circleLimit, maxRegions);
 }
 
 function drawScene() {
@@ -205,7 +207,7 @@ function animate() {
 
 function webGLStart() {
     initGL(doc.canvas);
-    initShaders();
+    initShaders(); 
 
     var startTime = new Date().getTime();
     initGeometry();
