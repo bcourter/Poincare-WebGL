@@ -144,7 +144,11 @@
 			}
 
 			function inverting(event) {
-				new FloatAnimator("isInverting", 1, doc.isInvertingCheckbox.checked ? 1 : 0);
+			    new FloatAnimator("isInverting", 1, doc.isInvertingCheckbox.checked ? 1 : 0);
+			}
+
+			function horizon(event) {
+			    new FloatAnimator("isHorizon", 1, doc.isHorizonCheckbox.checked ? 1 : 0);
 			}
 
 			function recenter(event) {
@@ -213,6 +217,7 @@
 				this.isInvertingCheckbox = document.getElementById("isInverting");
 				this.isInvertingCheckbox.onclick = inverting;
 				this.isHorizonCheckbox = document.getElementById("isHorizon");
+				this.isHorizonCheckbox.onclick = horizon;
 				this.limitRotationLeft = document.getElementById("limitRotationLeft");
 				this.limitRotationLeft.onclick = limitRotationLeft;
 				this.limitRotationRight = document.getElementById("limitRotationRight");
@@ -328,7 +333,7 @@
 			 margin:0 0 0 0px;
 			 display:block; 
 			}
-​
+			
 		</style>
 	</head>
 	<body onload="start();">

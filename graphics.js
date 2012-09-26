@@ -9,6 +9,7 @@ var motionIncrement = Complex.zero;
 var motionMobius = Mobius.identity;
 var angleIncrement = 0;
 var isInverting = 0;
+var isHorizon = 1;
 
 var startTime = new Date().getTime();
 var lastTime;
