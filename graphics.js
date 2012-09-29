@@ -48,7 +48,8 @@ function getShader(gl, id) {
     var str = "";
     var k = shaderScript.firstChild;
     while (k) {
-        if (k.nodeType == 3) {angleIncrement
+        if (k.nodeType == 3) {
+            angleIncrement
             str += k.textContent;
         }
         k = k.nextSibling;
@@ -123,27 +124,23 @@ function initShaders() {
     circleGradientShaderProgram.r1 = gl.getUniformLocation(circleGradientShaderProgram, "uR1");
     circleGradientShaderProgram.size = gl.getUniformLocation(circleGradientShaderProgram, "uSize");
 
-	circleGradientShaderProgram.canvas = doc.canvas;
+    circleGradientShaderProgram.canvas = doc.canvas;
 }
 
 
-function initDisc(file) { 
+function initDisc() {
+    var file = userImage;
+    if (file == "")
+        file = doc.image.innerText;
+
     var p = parseInt(doc.pField.value);
     var q = parseInt(doc.qField.value);
     var circleLimit = parseFloat(doc.circleLimitField.value);
     var maxRegions = parseFloat(doc.maxRegionsField.value);
-    
-    doc.image.style.backgroundImage="url(" + file + ")";
+
+    doc.image.style.backgroundImage = "url(" + file + ")";
     //doc.image.innerText = file;
     disc = new Disc(new Region(p, q), file, circleLimit, maxRegions);
-}
-
-function initGeometry() {
-	if (userImage == "")
-    	    userImage = doc.image.innerText;
-   
-
-    initDisc(userImage);
 }
 
 function drawScene() {
@@ -152,7 +149,7 @@ function drawScene() {
 
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.BLEND);
-    gl.disable(gl.DEPTH_TEST); 			
+    gl.disable(gl.DEPTH_TEST);
 
     disc.draw(motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram, isInverting);
 }
@@ -222,28 +219,28 @@ function webGLStart() {
         element: doc.imageUploader,
         action: '/poincareserver/uploader.cgi',
         button: doc.image,
-    //    listElement: doc.image,
-	debug: true,
-	onComplete: function(id, fileName, responseJSON) {
+        //    listElement: doc.image,
+        debug: true,
+        onComplete: function (id, fileName, responseJSON) {
             userImage = "images/" + responseJSON.file;
-	    initDisc(userImage);
+            initDisc();
         },
-	onSubmit: function(id, fileName) {
-//	    doc.image.innerHtml = "<span id='progress'></span>" + fileName;
-	    doc.image.innerText = fileName;
+        onSubmit: function (id, fileName) {
+            //	    doc.image.innerHtml = "<span id='progress'></span>" + fileName;
+            doc.image.innerText = fileName;
             doc.image.style.backgroundImage = "";
-	},
-	onProgress: function(id, fileName, uploadedBytes, totalBytes) {
+        },
+        onProgress: function (id, fileName, uploadedBytes, totalBytes) {
             var progress = document.getElementById("progress");
-	    progress.style.width = uploadedBytes / totalBytes * 100 + "%";
+            progress.style.width = uploadedBytes / totalBytes * 100 + "%";
         }
     });
 
     initGL(doc.canvas);
-    initShaders(); 
+    initShaders();
 
     var startTime = new Date().getTime();
-    initGeometry();
+    initDisc();
     initTime = new Date().getTime() - startTime;
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
