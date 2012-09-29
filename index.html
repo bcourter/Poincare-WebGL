@@ -2,6 +2,7 @@
 <head>
     <title>Poincar&eacute; Kaleidoscope</title>
     <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
+    <link rel="stylesheet" type="text/css" media="screen" href="fileuploader.css" />
     <script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
     <script type="text/javascript" src="webgl-utils.js"></script>
     <script type="text/javascript" src="fileuploader.js"></script>
@@ -207,7 +208,8 @@
             this.qField = document.getElementById("q");
             this.circleLimitField = document.getElementById("circleLimit");
             this.maxRegionsField = document.getElementById("maxRegions");
-            this.imageField = document.getElementById("image");
+            this.image = document.getElementById("image");
+            this.imageUploader = document.getElementById("imageUploader");
             this.resetButton = document.getElementById("reset");
             this.resetButton.onclick = initGeometry;
             this.recenterButton = document.getElementById("recenter");
@@ -322,6 +324,21 @@
             color: #999;
             line-height: 14px;
         }
+        #image 
+        {
+            color: white;
+            border-style: solid;
+            border-width: 1px;
+            border-color: #666;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+            background-color: #444;
+        }
+	#imageLoader
+	{
+	    display: none;
+	}
         a
         {
             color: #888;
@@ -374,8 +391,8 @@
             max regions:
             <input type='text' id='maxRegions' value='4096' size='3' />
             <br />
-            <div id="file-uploader">
-                <input type='text' id='image' value="LawsonFront.jpg" size='15' />
+            <div id='image'> LawsonFront.jpg </div>
+            <div id="imageUploader">
             </div>
             <p>
                 <input type='button' id='reset' value="update" />

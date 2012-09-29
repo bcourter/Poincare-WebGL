@@ -126,22 +126,23 @@ function initShaders() {
 	circleGradientShaderProgram.canvas = doc.canvas;
 }
 
-function initGeometry() {
+
+function initDisc(file) { 
     var p = parseInt(doc.pField.value);
     var q = parseInt(doc.qField.value);
-    var image = doc.imageField.value;
-
-    var uploader = new qq.FileUploader({
-        // pass the dom node (ex. $(selector)[0] for jQuery users)
-        element: document.getElementById('file-uploader'),
-        // path to server-side upload script
-        action: 'server/uploader.cgi'
-    });
-
-	doc.imageField.style.backgroundImage="url(" + image + ")";
     var circleLimit = parseFloat(doc.circleLimitField.value);
     var maxRegions = parseFloat(doc.maxRegionsField.value);
-    disc = new Disc(new Region(p, q), image, circleLimit, maxRegions);
+    
+    doc.image.style.backgroundImage="url(" + file + ")";
+    //doc.image.innerText = file;
+    disc = new Disc(new Region(p, q), file, circleLimit, maxRegions);
+}
+
+function initGeometry() {
+    var image = doc.image.innerText;
+   
+
+    initDisc(image);
 }
 
 function drawScene() {
@@ -215,6 +216,17 @@ function animate() {
 }
 
 function webGLStart() {
+    var uploader = new qq.FileUploader({
+        element: doc.imageUploader,
+        action: '/poincareserver/uploader.cgi',
+        button: doc.image,
+    //    listElement: doc.image,
+	debug: true,
+	onComplete: function(id, fileName, responseJSON) {
+            initDisc("images/" + responseJSON.file);
+        }
+    });
+
     initGL(doc.canvas);
     initShaders(); 
 

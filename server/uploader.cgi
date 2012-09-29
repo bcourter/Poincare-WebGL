@@ -5,9 +5,9 @@
 
     use Digest::MD5;
 
-    my $uploaddir = '/home/ubuntu/poincare-images';
+    my $uploaddir = '/home/ubuntu/github/Poincare-WebGL/images';
 
-    my $maxFileSize = 0.5 * 1024 * 1024; # 1/2mb max file size...
+    my $maxFileSize = 5 * 1024 * 1024; # 1/2mb max file size...
 
     use CGI;
     my $IN = new CGI;
@@ -20,12 +20,11 @@
     }
 
     my $temp_id = $IN->param('temp_id');
-
-	# make a random filename, and we guess the file type later on...
+ #make a random filename, and we guess the file type later on...
     my $name = Digest::MD5::md5_base64( rand );
        $name =~ s/\+/_/g;
        $name =~ s/\//_/g;
-
+    
     my $type;
     if ($file =~ /^GIF/) {
         $type = "gif";
@@ -34,6 +33,8 @@
     } elsif ($file =~ /JFIF/) {
         $type = "jpg";
     }
+
+    $name = "$name.$type";
 
     if (!$type) {
         print qq|{ "success": false, "error": "Invalid file type..." }|;
@@ -45,7 +46,7 @@
     mkdir("$uploaddir/$temp_id");
 
     binmode(WRITEIT);
-    open(WRITEIT, ">$uploaddir/$name.$type") or die "Cant write to $uploaddir/$name.$type. Reason: $!";
+    open(WRITEIT, ">$uploaddir/$name") or die "Cant write to $uploaddir/$name. Reason: $!";
     if ($IN->param('POSTDATA')) {
         print WRITEIT $file;
     } else {
@@ -55,7 +56,7 @@
     }
     close(WRITEIT);
 
-    my $check_size = -s "$uploaddir/$name.$type";
+    my $check_size = -s "$uploaddir/$name";
 
     print STDERR qq|Main filesize: $check_size  Max Filesize: $maxFileSize \n\n|;
 
@@ -69,7 +70,7 @@
         print qq|{ "success": false, "error": "File is too large..." }|;
         print STDERR "file has been NOT been uploaded... \n";
     } else  {
-        print qq|{ "success": true }|;
+        print qq|{ "success": true, "file": "$name" }|;
 
         print STDERR "file has been successfully uploaded... thank you.\n";
     }
