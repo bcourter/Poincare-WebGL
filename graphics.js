@@ -9,6 +9,7 @@ var motionIncrement = Complex.zero;
 var motionMobius = Mobius.identity;
 var angleIncrement = 0;
 var isInverting = 0;
+var isHorizon = 1;
 
 var startTime = new Date().getTime();
 var lastTime;
@@ -128,7 +129,15 @@ function initShaders() {
 function initGeometry() {
     var p = parseInt(doc.pField.value);
     var q = parseInt(doc.qField.value);
-	var image = doc.imageField.value;
+    var image = doc.imageField.value;
+
+    var uploader = new qq.FileUploader({
+        // pass the dom node (ex. $(selector)[0] for jQuery users)
+        element: document.getElementById('file-uploader'),
+        // path to server-side upload script
+        action: '/server/upload'
+    });
+
 	doc.imageField.style.backgroundImage="url(" + image + ")";
     var circleLimit = parseFloat(doc.circleLimitField.value);
     var maxRegions = parseFloat(doc.maxRegionsField.value);

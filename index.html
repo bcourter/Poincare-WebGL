@@ -1,22 +1,20 @@
 <html>
-	<head>
-		<title>Poincar&eacute; Kaleidoscope</title>
-		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
-		<meta id="viewport" name="viewport" content ="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-		<script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
-		<script type="text/javascript" src="webgl-utils.js"></script>
-		<script type="text/javascript" src="Complex.js"></script>
-		<script type="text/javascript" src="Circline.js"></script>
-		<script type="text/javascript" src="Face.js"></script>
-		<script type="text/javascript" src="Disc.js"></script>
-		<script type="text/javascript" src="Animator.js"></script>
-		<script type="text/javascript" src="jpg.js"></script>
-
-		<script type="text/javascript" src="graphics.js"></script>
-		<script type="text/javascript" src="events.js"></script>
-		<script type="text/javascript" src="extensions.js"></script>
-
-		<script id="shader-mobius-vertex" type="x-shader/x-vertex">
+<head>
+    <title>Poincar&eacute; Kaleidoscope</title>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
+    <script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
+    <script type="text/javascript" src="webgl-utils.js"></script>
+    <script type="text/javascript" src="fileuploader.js"></script>
+    <script type="text/javascript" src="Complex.js"></script>
+    <script type="text/javascript" src="Circline.js"></script>
+    <script type="text/javascript" src="Face.js"></script>
+    <script type="text/javascript" src="Disc.js"></script>
+    <script type="text/javascript" src="Animator.js"></script>
+    <script type="text/javascript" src="jpg.js"></script>
+    <script type="text/javascript" src="graphics.js"></script>
+    <script type="text/javascript" src="events.js"></script>
+    <script type="text/javascript" src="extensions.js"></script>
+    <script id="shader-mobius-vertex" type="x-shader/x-vertex">
 			attribute vec3 aVertexPosition;
 			attribute vec2 aTextureCoord;
 
@@ -50,8 +48,8 @@
 			gl_Position =  vec4(pos, 0.0, 1.0);
 				vTextureCoord = aTextureCoord;
 			}
-		</script>
-		<script id="shader-mobius-fragment" type="x-shader/x-fragment">
+    </script>
+    <script id="shader-mobius-fragment" type="x-shader/x-fragment">
 			precision mediump float;
 
 			varying vec2 vTextureCoord;
@@ -71,15 +69,15 @@
 					1) ;
 				}
 			}
-		</script>
-		<script id="shader-basic-vertex" type="x-shader/x-vertex">
+    </script>
+    <script id="shader-basic-vertex" type="x-shader/x-vertex">
 			attribute vec3 aVertexPosition;
 
 			void main(void) {
 			gl_Position = vec4(aVertexPosition, 1.0);
 			}
-		</script>
-		<script id="shader-circlegradient-fragment" type="x-shader/x-fragment">
+    </script>
+    <script id="shader-circlegradient-fragment" type="x-shader/x-fragment">
 			precision mediump float;
 
 			uniform vec4 uColor0, uColor1;
@@ -99,285 +97,314 @@
 			gl_FragColor = mix(uColor0, uColor1, ratio);
 			}
 			}
-		</script>
-		<script type="text/javascript">
-			//	var doc;
+    </script>
+    <script type="text/javascript">
+        //	var doc;
 
-			function drawMinimizeControlsButton() {
-				var ctx = doc.controlsPanelMinimizeCanvas.getContext("2d");
-				var size = doc.controlsPanelMinimizeSize;
+        function drawMinimizeControlsButton() {
+            var ctx = doc.controlsPanelMinimizeCanvas.getContext("2d");
+            var size = doc.controlsPanelMinimizeSize;
 
-				ctx.fillStyle = "#a00";
-				ctx.clearRect(0, 0, size + 1, size + 1);
+            ctx.fillStyle = "#a00";
+            ctx.clearRect(0, 0, size + 1, size + 1);
 
-				ctx.fillStyle = "#444";
-				ctx.strokeStyle = "#666";
+            ctx.fillStyle = "#444";
+            ctx.strokeStyle = "#666";
 
-				ctx.beginPath();
-				ctx.moveTo(0, 0);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
 
-				if (doc.areControlsMinimized)
-					ctx.lineTo(size, 0);
-				else
-					ctx.lineTo(0, size);
+            if (doc.areControlsMinimized)
+                ctx.lineTo(size, 0);
+            else
+                ctx.lineTo(0, size);
 
-				ctx.lineTo(size, size);
+            ctx.lineTo(size, size);
 
-				ctx.closePath();
-				ctx.fill();
-				ctx.stroke();
-			}
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
 
-			function tick() {
-				requestAnimFrame(tick);
+        function tick() {
+            requestAnimFrame(tick);
 
-				Animator.update();
+            Animator.update();
 
-				drawScene();
-				animate();
+            drawScene();
+            animate();
 
-				var animateTime = new Date().getTime();
-				doc.framerateText.innerHTML = disc.maxRegions + "&nbsp;regions&nbsp;in&nbsp;" + (initTime / 1000).toFixed(2) + "s&nbsp;&nbsp;&nbsp;" + (1000 / (animateTime - lastTickTime)).toFixed(1) + "fps";
-				lastTickTime = animateTime;
+            var animateTime = new Date().getTime();
+            doc.framerateText.innerHTML = disc.maxRegions + "&nbsp;regions&nbsp;in&nbsp;" + (initTime / 1000).toFixed(2) + "s&nbsp;&nbsp;&nbsp;" + (1000 / (animateTime - lastTickTime)).toFixed(1) + "fps";
+            lastTickTime = animateTime;
 
-				drawMinimizeControlsButton();
-				window.scrollTo(0, 0);
-			}
+            drawMinimizeControlsButton();
+            window.scrollTo(0, 0);
+        }
 
-			function inverting(event) {
-				new FloatAnimator("isInverting", 1, doc.isInvertingCheckbox.checked ? 1 : 0);
-			}
+        function inverting(event) {
+            new FloatAnimator("isInverting", 1, doc.isInvertingCheckbox.checked ? 1 : 0);
+        }
 
-			function recenter(event) {
-				motionIncrement = Complex.zero;
-				angleIncrement = 0;
-				
-				new MobiusAnimator("motionMobius", 1, Mobius.identity, disc.region.p);
-			}
+        function horizon(event) {
+            new FloatAnimator("isHorizon", 1, doc.isHorizonCheckbox.checked ? 1 : 0);
+        }
 
-			function limitRotationLeft(event) {
-				new FloatAnimator("angleIncrement", 1, motionIncrement.modulus() * 2);
-			}
+        function recenter(event) {
+            motionIncrement = Complex.zero;
+            angleIncrement = 0;
 
-			function limitRotationRight(event) {
-				new FloatAnimator("angleIncrement", 1, -motionIncrement.modulus() * 2);
-			}
+            new MobiusAnimator("motionMobius", 1, Mobius.identity, disc.region.p);
+        }
 
-			function output(text) {
-				doc.output.innerHTML = text;
-			}
+        function limitRotationLeft(event) {
+            new FloatAnimator("angleIncrement", 1, motionIncrement.modulus() * 2);
+        }
+
+        function limitRotationRight(event) {
+            new FloatAnimator("angleIncrement", 1, -motionIncrement.modulus() * 2);
+        }
+
+        function output(text) {
+            doc.output.innerHTML = text;
+        }
 
 
-			window.onload = window.onresize = function() {
-				initGL(doc.canvas);
-			}
-			function start() {
-				doc = new Doc();
- 				document.body.scroll = "no";
- 				webGLStart();
-				Animator.prototype.animators = [];
-				tick();
-			}
+        window.onload = window.onresize = function () {
+            initGL(doc.canvas);
+        }
+        function start() {
+            doc = new Doc();
+            document.body.scroll = "no";
+            webGLStart();
+            Animator.prototype.animators = [];
+            tick();
+        }
 
-			var Doc = function() {
-			    //this.canvas.onmousedown = handleMouseDown;
-			    document.onmousedown = handleMouseDown;
-			    document.onmouseup = handleMouseUp;
-			    document.onmousemove = handleMouseMove;
-			    document.ontouchstart = handleMouseDown;
-			    document.ontouchend = handleMouseUp;
-			    document.ontouchmove = handleMouseMove;
+        var Doc = function () {
+            //this.canvas.onmousedown = handleMouseDown;
+            document.onmousedown = handleMouseDown;
+            document.onmouseup = handleMouseUp;
+            document.onmousemove = handleMouseMove;
+            document.ontouchstart = handleMouseDown;
+            document.ontouchend = handleMouseUp;
+            document.ontouchmove = handleMouseMove;
 
-				this.canvas = document.getElementById("canvas");
-				this.controls = document.getElementById("controlsPanel");
+            this.canvas = document.getElementById("canvas");
+            this.controls = document.getElementById("controlsPanel");
 
-				this.controlsPanelMinimize = document.getElementById("controlsPanelMinimize");
-				this.controlsPanelMinimizeCanvas = document.getElementById("controlsPanelMinimizeCanvas");
-				this.controlsPanelMinimizeCanvas.onclick = handleMinimizeControlsButtonClick;
-				this.controlsPanelMinimizeSize = this.controlsPanelMinimize.clientWidth;
-				this.areControlsMinimized = false;
+            this.controlsPanelMinimize = document.getElementById("controlsPanelMinimize");
+            this.controlsPanelMinimizeCanvas = document.getElementById("controlsPanelMinimizeCanvas");
+            this.controlsPanelMinimizeCanvas.onclick = handleMinimizeControlsButtonClick;
+            this.controlsPanelMinimizeSize = this.controlsPanelMinimize.clientWidth;
+            this.areControlsMinimized = false;
 
-				this.controlsBody = document.getElementById("controlsBody");
+            this.controlsBody = document.getElementById("controlsBody");
 
-				this.output = document.getElementById("output");
-				this.framerateText = document.getElementById("controlsFramerateText");
-				this.pField = document.getElementById("p");
-				this.qField = document.getElementById("q");
-				this.circleLimitField = document.getElementById("circleLimit");
-				this.maxRegionsField = document.getElementById("maxRegions");
-				this.imageField = document.getElementById("image");
-				this.resetButton = document.getElementById("reset");
-				this.resetButton.onclick = initGeometry;
-				this.recenterButton = document.getElementById("recenter");
-				this.recenterButton.onclick = recenter;
+            this.output = document.getElementById("output");
+            this.framerateText = document.getElementById("controlsFramerateText");
+            this.pField = document.getElementById("p");
+            this.qField = document.getElementById("q");
+            this.circleLimitField = document.getElementById("circleLimit");
+            this.maxRegionsField = document.getElementById("maxRegions");
+            this.imageField = document.getElementById("image");
+            this.resetButton = document.getElementById("reset");
+            this.resetButton.onclick = initGeometry;
+            this.recenterButton = document.getElementById("recenter");
+            this.recenterButton.onclick = recenter;
 
-				this.isInvertingCheckbox = document.getElementById("isInverting");
-				this.isInvertingCheckbox.onclick = inverting;
-				this.isHorizonCheckbox = document.getElementById("isHorizon");
-				this.limitRotationLeft = document.getElementById("limitRotationLeft");
-				this.limitRotationLeft.onclick = limitRotationLeft;
-				this.limitRotationRight = document.getElementById("limitRotationRight");
-				this.limitRotationRight.onclick = limitRotationRight;
-			};
+            this.isInvertingCheckbox = document.getElementById("isInverting");
+            this.isInvertingCheckbox.onclick = inverting;
+            this.isHorizonCheckbox = document.getElementById("isHorizon");
+            this.isHorizonCheckbox.onclick = horizon;
+            this.limitRotationLeft = document.getElementById("limitRotationLeft");
+            this.limitRotationLeft.onclick = limitRotationLeft;
+            this.limitRotationRight = document.getElementById("limitRotationRight");
+            this.limitRotationRight.onclick = limitRotationRight;
+        };
 
-		</script>
-		<style type="text/css">
-			body {
-				background-color: #000;
-				font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-				font-size: 12px;
-				font-weight: 600;
-				color: white;
-				font-family: 'Doppio One', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-				padding: 0px;
-				
-				-webkit-touch-callout: none;
-				-webkit-user-select: none;
-				-khtml-user-select: none;
-				-moz-user-select: none;
-				-ms-user-select: none;
-				-o-user-select: none;
-				user-select: none;
-			}
-
-			html, body {
-				width: 100%;
-				height: 100%;
-				margin: 0px;
-				overflow: hidden;
-			}
-			hr {
-				border-color: #666;
-			}
-			input {
-				color: white;
-				border-style: solid;
-				border-width: 1px;
-				border-color: #666;
-				margin-left: auto;
-				margin-right: auto;
-				text-align: center;
-				background-color: #444;	
-			}
-			input [type='text']  {
-				height: 18px;
-			}
-			input [type='button']  {
-				height: 18px;
-			}
-			input [type='checkbox']  {
-				height: 4px;
-				line-height: 5px;
-			}
-			#canvas {
-				/*    width: 100%;LawsonFront
+    </script>
+    <style type="text/css">
+        body
+        {
+            background-color: #000;
+            font-family: 'Helvetica Neue' , Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            font-family: 'Doppio One' , 'Helvetica Neue' , Helvetica, Arial, sans-serif;
+            padding: 0px;
+            overflow: hidden;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -o-user-select: none;
+            user-select: none;
+        }
+        
+        html, body
+        {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+            overflow: hidden;
+        }
+        hr
+        {
+            border-color: #666;
+        }
+        input
+        {
+            color: white;
+            border-style: solid;
+            border-width: 1px;
+            border-color: #666;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+            background-color: #444;
+        }
+        input [type='text']
+        {
+            height: 18px;
+        }
+        input [type='button']
+        {
+            height: 18px;
+        }
+        input [type='checkbox']
+        {
+            height: 4px;
+            line-height: 5px;
+        }
+        #canvas
+        {
+            /*    width: 100%;LawsonFront
 				 height: 100%;*/
-				position: absolute;
-				border: none;
-				top: 0;
-				left: 0;
-			}
-			#controlsPanel {
-				position: absolute;
-				bottom: 0;
-				left: 0;
-				margin: 0 0 0 0;
-				border-style: solid;
-				border-width: 1px;
-				border-color: #666;
-				background-color: #222;
-			}
-			#controlsPanelMinimize {
-				position: absolute;
-				top: 0;
-				right: 0;
-				width: 10px;
-				height: 10px;
-				margin: 2 2 2 2;
-			}
-			#controlsBody {
-				position: static;
-				margin: 0 0 0 0;
-				padding: 0 8 0 8px;
-			}
-			#controlsTextArea {
-				margin: 0 0 0 0;
-				font-size: 10px;
-				font-weight: 200;
-				color: #999;
-				line-height: 14px;
-			}
-			a {
-				color: #888;
-			}
-			a:link {
-				color: #888;
-			}
-			a:visited {
-				color: #888;
-			}
-			a:hover {
-				color: #aaa;
-			}
-			a:hover {
-				color: #aaa;
-			}
-			label {
-			 border:0px solid #ccc;
-			 padding:0px;
-			 margin:0 0 0 0px;
-			 display:block; 
-			}
-​
-		</style>
-	</head>
-	<body onload="start();">
-		<canvas id="canvas" width="205" height="205">
+            position: absolute;
+            border: none;
+            top: 0;
+            left: 0;
+        }
+        #controlsPanel
+        {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            margin: 0 0 0 0;
+            border-style: solid;
+            border-width: 1px;
+            border-color: #666;
+            background-color: #222;
+        }
+        #controlsPanelMinimize
+        {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            margin: 2 2 2 2;
+        }
+        #controlsBody
+        {
+            position: static;
+            margin: 0 0 0 0;
+            padding: 0 8 0 8px;
+        }
+        #controlsTextArea
+        {
+            margin: 0 0 0 0;
+            font-size: 10px;
+            font-weight: 200;
+            color: #999;
+            line-height: 14px;
+        }
+        a
+        {
+            color: #888;
+        }
+        a:link
+        {
+            color: #888;
+        }
+        a:visited
+        {
+            color: #888;
+        }
+        a:hover
+        {
+            color: #aaa;
+        }
+        a:hover
+        {
+            color: #aaa;
+        }
+        label
+        {
+            border: 0px solid #ccc;
+            padding: 0px;
+            margin: 0 0 0 0px;
+            display: block;
+        }
+    </style>
+</head>
+<body onload="start();">
+    <canvas id="canvas" width="205" height="205">
 			If your browser doesn't support canvas, it def won't run WebGL.
 		</canvas>
-		<div id="controlsPanel">
-			<div id="controlsPanelMinimize">
-				<canvas id="controlsPanelMinimizeCanvas"></canvas>
-			</div>
-			<div id="controlsBody">
-				<p id="output"></p>
-				{
-				<input type='text' id='p' value='5' size='1' />
-				|
-				<input type='text' id='q' value='5' size='1' />
-				}
-				<br />
-				max radius: <input type='text' id='circleLimit' value='0.999' size='3' />
-				<br />
-				max regions: <input type='text' id='maxRegions' value='4096' size='3' />
-				<br />
-				<input type='text' id='image' value="LawsonFront.jpg" size='15'/>
-				<p>
-					<input type='button' id='reset' value="update" />
-				</p>
-				<hr />
-				<label><input type='checkbox' id='isInverting' /> invert</label>
-				
-				<label><input type='checkbox' id='isHorizon' checked=true /> horizon</label>
-				
-				limit rotation: 
-				<input type='button' id='limitRotationLeft' value="left" />
-				<input type='button' id='limitRotationRight' value="right" />
-				<br />
-				<input type='button' id='recenter' value="recenter" />
-				<hr />
-				<div id="controlsTextArea">
-					<p>
-						Poincar&eacute; Kaleidoscope
-						<br />
-						&copy; 2012 Blake Courter
-						<br />
-						<a href="https://github.com/bcourter/Poincare-WebGL" target='_blank' >http://github.com/bcourter/...</a>
-					</p>
-					<p id="controlsFramerateText"></p>
-				</div>
-			</div>
-
-		</div>
-	</body>
+    <div id="controlsPanel">
+        <div id="controlsPanelMinimize">
+            <canvas id="controlsPanelMinimizeCanvas"></canvas>
+        </div>
+        <div id="controlsBody">
+            <p id="output">
+            </p>
+            {
+            <input type='text' id='p' value='5' size='1' />
+            |
+            <input type='text' id='q' value='5' size='1' />
+            }
+            <br />
+            max radius:
+            <input type='text' id='circleLimit' value='0.999' size='3' />
+            <br />
+            max regions:
+            <input type='text' id='maxRegions' value='4096' size='3' />
+            <br />
+            <div id="file-uploader">
+                <input type='text' id='image' value="LawsonFront.jpg" size='15' />
+            </div>
+            <p>
+                <input type='button' id='reset' value="update" />
+            </p>
+            <hr />
+            <label>
+                <input type='checkbox' id='isInverting' />
+                invert</label>
+            <label>
+                <input type='checkbox' id='isHorizon' checked="true" />
+                horizon</label>
+            limit rotation:
+            <input type='button' id='limitRotationLeft' value="left" />
+            <input type='button' id='limitRotationRight' value="right" />
+            <br />
+            <input type='button' id='recenter' value="recenter" />
+            <hr />
+            <div id="controlsTextArea">
+                <p>
+                    Poincar&eacute; Kaleidoscope
+                    <br />
+                    &copy; 2012 Blake Courter
+                    <br />
+                    <a href="https://github.com/bcourter/Poincare-WebGL" target='_blank'>http://github.com/bcourter/...</a>
+                </p>
+                <p id="controlsFramerateText">
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
 </html>

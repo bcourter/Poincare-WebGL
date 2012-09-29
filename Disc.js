@@ -2,9 +2,9 @@ function Disc(region, bitmapURL, circleLimit, maxRegions) {
     this.region = region;
     this.circleLimit = circleLimit;
     this.maxRegions = maxRegions;
-	this.bitmapURL = bitmapURL;
+    this.bitmapURL = bitmapURL;
 
-	this.circleMaxModulus;
+    this.circleMaxModulus;
     this.radiusLimit = 1E-4;
 
     this.initialFace = Face.create(region); //.transform(Mobius.createDiscAutomorphism(new Complex([0.001, 0.001]), 0));
@@ -20,8 +20,8 @@ function Disc(region, bitmapURL, circleLimit, maxRegions) {
 Disc.prototype.initFaces = function () {
     var seedFace = this.initialFace;
     var faceQueue = [seedFace];
-	var faceCenters = new ComplexCollection();
-	
+    var faceCenters = new ComplexCollection();
+
     var count = 1;
     var minDist = 1;
     var maxFaces = this.maxRegions / this.region.p / 2;
@@ -30,32 +30,32 @@ Disc.prototype.initFaces = function () {
 
         for (var i = 0; i < face.edges.length; i++) {
             var edge = face.edges[i];
-            if (edge.isConvex()) 
+            if (edge.isConvex())
                 continue;
-            
-            var c = edge.Circline;
-            if (c.constructor != Circle) 
-                continue;
-            
-            
-     //       if (face.edgeCenters[i].magnitudeSquared > 0.9) 
-      //          continue;
 
-            if (c.radiusSquared() < this.radiusLimit) 
+            var c = edge.Circline;
+            if (c.constructor != Circle)
+                continue;
+
+
+            //       if (face.edgeCenters[i].magnitudeSquared > 0.9) 
+            //          continue;
+
+            if (c.radiusSquared() < this.radiusLimit)
                 continue;
 
             var mobius = edge.Circline.asMobius();
             var image = face.conjugate().transform(mobius);
-  //          if (isNaN(image.center.data[0])) {
-  //              output("NaN!");
-   //             continue;
-   //         }
+            //          if (isNaN(image.center.data[0])) {
+            //              output("NaN!");
+            //             continue;
+            //         }
 
-            if (image.center.modulusSquared() > this.circleLimit) 
+            if (image.center.modulusSquared() > this.circleLimit)
                 continue;
 
-			if (faceCenters.contains(image.center))
-				continue;
+            if (faceCenters.contains(image.center))
+                continue;
 
             this.faces.push(image);
             faceQueue.unshift(image);
@@ -64,7 +64,7 @@ Disc.prototype.initFaces = function () {
         }
     }
 
-	this.circleMaxModulus = faceCenters.max;
+    this.circleMaxModulus = faceCenters.max;
 };
 
 var backgroundColor = null;
@@ -73,21 +73,21 @@ var backgroundColor = null;
 var texture;  // TBD figure out how to tidy this up.
 Disc.prototype.initTextures = function () {
     var jpeg = new JpegImage();
-	var maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-	var maxVertexTextureImageUnits = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
+    var maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    var maxVertexTextureImageUnits = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
 
-	if (texture != null)
-		gl.deleteTexture(texture);
+    if (texture != null)
+        gl.deleteTexture(texture);
 
     texture = gl.createTexture();
-//		texture.image = new Image(); // tmp
+    //		texture.image = new Image(); // tmp
 
-//   texture.image.onload = function () {
+    //   texture.image.onload = function () {
     jpeg.onload = function () {
         var canvas = document.createElement("canvas");
-		var size = Math.min(jpeg.width, jpeg.height);
-		size = Math.pow(2, Math.floor(Math.log(size) / Math.log(2)));
-		size = Math.min(size, maxTextureSize);
+        var size = Math.min(jpeg.width, jpeg.height);
+        size = Math.pow(2, Math.floor(Math.log(size) / Math.log(2)));
+        size = Math.min(size, maxTextureSize);
 
         canvas.width = size;
         canvas.height = size;
@@ -110,17 +110,17 @@ Disc.prototype.initTextures = function () {
                 a += d.data[i + 3]
             ];
         }
-		
-		var scale = skip / len * 4 / 255;
-        backgroundColor = [r * scale, g  * scale, b * scale, a * scale];
+
+        var scale = skip / len * 4 / 255;
+        backgroundColor = [r * scale, g * scale, b * scale, a * scale];
 
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas); // This is the important line!
-   //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-     //   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-    	gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas); // This is the important line!
+        //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+        //   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.bindTexture(gl.TEXTURE_2D, null);
 
@@ -128,15 +128,15 @@ Disc.prototype.initTextures = function () {
 
     jpeg.load(this.bitmapURL);
 
-  //  texture.image.src = this.bitmapURL;
+    //  texture.image.src = this.bitmapURL;
 };
 
 
 
 
 Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram, isInverting) {
-    if (backgroundColor !== null)
-        this.drawCircleGradient(colorAlpha(backgroundColor, 1), colorAlpha(backgroundColor, 1), 0, 1, circleGradientShaderProgram);
+    if (backgroundColor !== null && isHorizon > 0)
+        this.drawCircleGradient(colorAlpha(backgroundColor, isHorizon), colorAlpha(backgroundColor, isHorizon), 0, 1, circleGradientShaderProgram);
 
     gl.useProgram(mobiusShaderProgram);
     gl.uniform2fv(mobiusShaderProgram.textureOffset, textureOffset.data);
@@ -148,22 +148,22 @@ Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram
     for (var i = 0; i < this.faces.length; i++) {
         this.faces[i].draw(motionMobius, textureOffset, texture, mobiusShaderProgram, isInverting);
     }
- 	
- 	if (doc.isHorizonCheckbox.checked) {
- 	var width = 1 - this.circleMaxModulus;
-    var gradientInside = 10 * width;
-    var gradientMiddle = 3 * width;
-//    var gradientInside = 0.04;
-// var gradientMiddle = 0.01;
-    if (backgroundColor !== null) {
-        this.drawCircleGradient(colorAlpha(backgroundColor, 0), colorAlpha(backgroundColor, 1), 1.0 - gradientInside, 1 - gradientMiddle, circleGradientShaderProgram);
-        this.drawCircleGradient(colorAlpha(backgroundColor, 1), colorAlpha(backgroundColor, 1), 1.0 - gradientMiddle, 1.0, circleGradientShaderProgram);
+
+    if (isHorizon > 0) {
+        var width = 1 - this.circleMaxModulus;
+        var gradientInside = 10 * width;
+        var gradientMiddle = 3 * width;
+        //    var gradientInside = 0.04;
+        // var gradientMiddle = 0.01;
+        if (backgroundColor !== null) {
+            this.drawCircleGradient(colorAlpha(backgroundColor, 0 * isHorizon), colorAlpha(backgroundColor, 1 * isHorizon), 1.0 - gradientInside, 1 - gradientMiddle, circleGradientShaderProgram);
+            this.drawCircleGradient(colorAlpha(backgroundColor, 1 * isHorizon), colorAlpha(backgroundColor, 1 * isHorizon), 1.0 - gradientMiddle, 1.0, circleGradientShaderProgram);
+        }
+
+        var thickness = 0.005;
+        this.drawCircleGradient([1, 1, 1, 0 * isHorizon], [1, 1, 1, 1 * isHorizon], 1 - 3 / 4 * thickness, 1 - thickness / 4, circleGradientShaderProgram);
+        this.drawCircleGradient([1, 1, 1, 1 * isHorizon], [0, 0, 0, 1 /*      */ ], 1 - thickness / 4, 1 + thickness / 4, circleGradientShaderProgram); //TBD doesn't transparency antialias?
     }
-    }
-    
-    var thickness = 0.005;
-    this.drawCircleGradient([1, 1, 1, 0], [1, 1, 1, 1], 1 - 3/4 * thickness, 1 - thickness / 4, circleGradientShaderProgram);
-    this.drawCircleGradient([1, 1, 1, 1], [0, 0, 0, 1], 1 - thickness / 4, 1 + thickness / 4, circleGradientShaderProgram); //TBD doesn't transparency antialias?
 };
 
 function colorAlpha(color, alpha) {
