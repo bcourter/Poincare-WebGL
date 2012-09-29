@@ -1,9 +1,12 @@
 #!/usr/bin/perl
 
     use strict;
+    use List::Util qw[min max];
+    use POSIX;
     use CGI::Carp qw(fatalsToBrowser);
 
     use Digest::MD5;
+    use Image::Magick;
 
     my $uploaddir = '/home/ubuntu/github/Poincare-WebGL/images';
 
@@ -21,20 +24,20 @@
 
     my $temp_id = $IN->param('temp_id');
  #make a random filename, and we guess the file type later on...
-    my $name = Digest::MD5::md5_base64( rand );
-       $name =~ s/\+/_/g;
-       $name =~ s/\//_/g;
+    my $filename = Digest::MD5::md5_base64( rand );
+       $filename =~ s/\+/_/g;
+       $filename =~ s/\//_/g;
     
     my $type;
     if ($file =~ /^GIF/) {
         $type = "gif";
-    } elsif ($file =~ /PNG/) {
-        $type = "png";
     } elsif ($file =~ /JFIF/) {
         $type = "jpg";
+    } elsif ($file =~ /PNG/) {
+        $type = "png";
     }
 
-    $name = "$name.$type";
+    my $name = "$uploaddir/$filename.$type";
 
     if (!$type) {
         print qq|{ "success": false, "error": "Invalid file type..." }|;
@@ -46,7 +49,7 @@
     mkdir("$uploaddir/$temp_id");
 
     binmode(WRITEIT);
-    open(WRITEIT, ">$uploaddir/$name") or die "Cant write to $uploaddir/$name. Reason: $!";
+    open(WRITEIT, ">$name") or die "Cant write to $name. Reason: $!";
     if ($IN->param('POSTDATA')) {
         print WRITEIT $file;
     } else {
@@ -56,9 +59,29 @@
     }
     close(WRITEIT);
 
-    my $check_size = -s "$uploaddir/$name";
+    my $check_size = -s "$name";
 
     print STDERR qq|Main filesize: $check_size  Max Filesize: $maxFileSize \n\n|;
+
+        my $image = Image::Magick->new;
+        open(IMAGE, $name) or die "Cant read $name. Reason: $!";
+  	$image->Read(file=>\*IMAGE);
+  	close(IMAGE);
+
+	(my $width, my $height) = $image->Get('width','height');
+        my $size = min($width, $height);
+	$image->Crop(geometry=>"${size}x$size+0+0");
+	
+	my $newsize = 2 ** floor(log($size) / log(2));
+    	print STDERR "size $size newsize $newsize\n";
+	$image->Resize(height=>$newsize, width=>$newsize);
+
+	my $newname = "$uploaddir/$filename.jpg";
+  	open(IMAGE, ">$newname");
+  	$image->Write(file=>\*IMAGE, filename=>$newname, quality=>90);
+  	close(IMAGE);
+
+	$name = $newname;
 
     print $IN->header();
     if ($check_size < 1) {
@@ -70,7 +93,7 @@
         print qq|{ "success": false, "error": "File is too large..." }|;
         print STDERR "file has been NOT been uploaded... \n";
     } else  {
-        print qq|{ "success": true, "file": "$name" }|;
+        print qq|{ "success": true, "file": "$filename.jpg" }|;
 
         print STDERR "file has been successfully uploaded... thank you.\n";
     }
