@@ -139,10 +139,11 @@ function initDisc(file) {
 }
 
 function initGeometry() {
-    var image = doc.image.innerText;
+	if (userImage == "")
+    	    userImage = doc.image.innerText;
    
 
-    initDisc(image);
+    initDisc(userImage);
 }
 
 function drawScene() {
@@ -215,6 +216,7 @@ function animate() {
     lastTime = timeNow;
 }
 
+var userImage = "";
 function webGLStart() {
     var uploader = new qq.FileUploader({
         element: doc.imageUploader,
@@ -223,7 +225,17 @@ function webGLStart() {
     //    listElement: doc.image,
 	debug: true,
 	onComplete: function(id, fileName, responseJSON) {
-            initDisc("images/" + responseJSON.file);
+            userImage = "images/" + responseJSON.file;
+	    initDisc(userImage);
+        },
+	onSubmit: function(id, fileName) {
+//	    doc.image.innerHtml = "<span id='progress'></span>" + fileName;
+	    doc.image.innerText = fileName;
+            doc.image.style.backgroundImage = "";
+	},
+	onProgress: function(id, fileName, uploadedBytes, totalBytes) {
+            var progress = document.getElementById("progress");
+	    progress.style.width = uploadedBytes / totalBytes * 100 + "%";
         }
     });
 

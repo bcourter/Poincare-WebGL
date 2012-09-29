@@ -333,7 +333,6 @@
             margin-left: auto;
             margin-right: auto;
             text-align: center;
-            background-color: #444;
         }
 	#imageLoader
 	{
@@ -366,6 +365,36 @@
             margin: 0 0 0 0px;
             display: block;
         }
+
+.meter-wrap
+{
+    position: relative;
+}
+
+.meter-wrap, .meter-value, .meter-text 
+{
+    /* The width and height of your image */
+    width: 100%; 
+}
+
+.meter-wrap, .meter-value 
+{
+    background: #111 top left no-repeat;
+}
+
+.meter-text {
+    position: absolute;
+    top:0; left:0;
+
+    padding-top: 5px;
+
+    color: #fff;
+    text-align: center;
+    width: 100%;
+}
+.meter-value {
+    background-color: #666; 
+}
     </style>
 </head>
 <body onload="start();">
@@ -391,8 +420,16 @@
             max regions:
             <input type='text' id='maxRegions' value='4096' size='3' />
             <br />
-            <div id='image'> LawsonFront.jpg </div>
-            <div id="imageUploader">
+            
+<div class="meter-wrap">
+    <div id='progress' class="meter-value" >
+        <div id='image' class="meter-text">
+           LawsonFront.jpg 
+        </div>
+    </div>
+</div>
+
+	    <div id="imageUploader">
             </div>
             <p>
                 <input type='button' id='reset' value="update" />
