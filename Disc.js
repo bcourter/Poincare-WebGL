@@ -113,6 +113,8 @@ Disc.prototype.initTextures = function () {
 
         var scale = skip / len * 4 / 255;
         backgroundColor = [r * scale, g * scale, b * scale, a * scale];
+	var contrastColor = backgroundColor[0] + backgroundColor[1] + backgroundColor[2] > 2 ? "black" : "white";
+	doc.image.style.color = contrastColor;
 
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
