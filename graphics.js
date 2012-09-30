@@ -138,7 +138,7 @@ function initDisc() {
     var circleLimit = parseFloat(doc.circleLimitField.value);
     var maxRegions = parseFloat(doc.maxRegionsField.value);
 
-    doc.image.style.backgroundImage = "url(" + file + ")";
+    //doc.image.style.backgroundImage = "url(" + file + ")";
     //doc.image.innerText = file;
     disc = new Disc(new Region(p, q), file, circleLimit, maxRegions);
 }
@@ -218,22 +218,25 @@ function webGLStart() {
     var uploader = new qq.FileUploader({
         element: doc.imageUploader,
         action: '/poincareserver/uploader.cgi',
-        button: doc.image,
+        button: doc.progress,
         //    listElement: doc.image,
         debug: true,
         onComplete: function (id, fileName, responseJSON) {
             userImage = "images/" + responseJSON.file;
             initDisc();
+            doc.image.innerText = fileName;
+        //    this.progress.style.width = "0%";
+        //    doc.image.borderWidth = 1;
         },
         onSubmit: function (id, fileName) {
             //	    doc.image.innerHtml = "<span id='progress'></span>" + fileName;
-            doc.image.innerText = fileName;
-            doc.image.style.backgroundImage = "";
-            doc.image.style.color = white;
+            doc.image.innerText = "";
+          //  doc.image.borderWidth = 0;
+          //  doc.image.style.backgroundImage = "";
+          //  doc.image.style.color = "white";
         },
         onProgress: function (id, fileName, uploadedBytes, totalBytes) {
-            var progress = document.getElementById("progress");
-            progress.style.width = uploadedBytes / totalBytes * 100 + "%";
+            this.progress.style.width = uploadedBytes / totalBytes * 100 + "%";
         }
     });
 
