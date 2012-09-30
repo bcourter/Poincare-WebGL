@@ -229,6 +229,7 @@ function webGLStart() {
             //	    doc.image.innerHtml = "<span id='progress'></span>" + fileName;
             doc.image.innerText = fileName;
             doc.image.style.backgroundImage = "";
+            doc.image.style.color = white;
         },
         onProgress: function (id, fileName, uploadedBytes, totalBytes) {
             var progress = document.getElementById("progress");

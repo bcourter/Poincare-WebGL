@@ -178,6 +178,7 @@
         function start() {
             doc = new Doc();
             document.body.scroll = "no";
+	    updateControls();
             webGLStart();
             Animator.prototype.animators = [];
             tick();
@@ -199,7 +200,7 @@
             this.controlsPanelMinimizeCanvas = document.getElementById("controlsPanelMinimizeCanvas");
             this.controlsPanelMinimizeCanvas.onclick = handleMinimizeControlsButtonClick;
             this.controlsPanelMinimizeSize = this.controlsPanelMinimize.clientWidth;
-            this.areControlsMinimized = false;
+            this.areControlsMinimized = true;
 
             this.controlsBody = document.getElementById("controlsBody");
 

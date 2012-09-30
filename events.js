@@ -12,6 +12,10 @@ function handleMinimizeControlsButtonClick(event) {
 		return;
 
 	doc.areControlsMinimized = !doc.areControlsMinimized;
+	updateControls();
+}
+
+function updateControls() {
 	doc.controlsBody.style.display = doc.areControlsMinimized ? "none" : "block";
 	doc.controlsPanelMinimize.style.position = doc.areControlsMinimized ? "relative" : "absolute"
 }
