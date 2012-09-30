@@ -239,17 +239,7 @@
         <div id="controlsBody">
             <p id="output">
             </p>
-            {
-            <input type='text' id='p' value='5' size='1' />
-            |
-            <input type='text' id='q' value='5' size='1' />
-            }
-            <br />
-            max radius:
-            <input type='text' id='circleLimit' value='0.999' size='3' />
-            <br />
-            max regions:
-            <input type='text' id='maxRegions' value='4096' size='3' />
+            image:
             <br />
             <div class="meter-wrap">
                 <div id='progress' class="meter-value">
@@ -259,6 +249,22 @@
                 </div>
             </div>
             <div id="imageUploader">
+            </div>
+            <hr />
+            {
+            <input type='text' id='p' value='5' size='1' />
+            |
+            <input type='text' id='q' value='5' size='1' />
+            }
+            <br />
+            <div style="display: none;">
+                max radius:
+                <input type='text' id='circleLimit' value='0.999' size='3' />
+                <br />
+            </div>
+            <div style="display: block;">
+                max regions:
+                <input type='text' id='maxRegions' value='4096' size='3' />
             </div>
             <p>
                 <input type='button' id='reset' value="update" />
