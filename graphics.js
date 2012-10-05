@@ -130,8 +130,8 @@ function initShaders() {
 
 function initDisc() {
     var file = userImage;
-    if (file == "")
-        file = doc.image.innerText;
+    if (file == "") 
+	file = doc.image.textContent;
 
     var p = parseInt(doc.pField.value);
     var q = parseInt(doc.qField.value);
@@ -236,7 +236,7 @@ function webGLStart() {
           //  doc.image.style.color = "white";
         },
         onProgress: function (id, fileName, uploadedBytes, totalBytes) {
-            this.progress.style.width = uploadedBytes / totalBytes * 100 + "%";
+            doc.progress.style.width = uploadedBytes / totalBytes * 100 + "%";
         }
     });
 
