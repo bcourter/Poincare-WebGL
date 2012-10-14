@@ -370,10 +370,11 @@ Face.prototype.draw = function (motionMobius, textureOffset, texture, shaderProg
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.uniform1i(shaderProgram.samplerUniform, 0);
  
+	gl.uniform1f(shaderProgram.isInverted, isInverting * ((Math.floor(i/4) + (this.isFlipped ? 0 : 1)) % 2));
     for (i = 0; i < this.indexBuffers.length; i++) {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffers[i]);
-	    gl.uniform1f(shaderProgram.isInverted, isInverting * ((Math.floor(i/4) + (this.isFlipped ? 0 : 1)) % 2));
 
+	gl.uniform1f(shaderProgram.isInverted, isInverting * ((Math.floor(i/4) + (this.isFlipped ? 0 : 1)) % 2));
         gl.drawElements(gl.TRIANGLE_STRIP, this.indexBuffers[i].numItems, gl.UNSIGNED_SHORT, 0);
     }
 
