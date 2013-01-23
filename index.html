@@ -24,30 +24,71 @@
 			uniform vec2 uMobiusB;
 			uniform vec2 uMobiusC;
 			uniform vec2 uMobiusD;
+			
+			uniform float uInterp;
+//float uInterp = 0.5;
 
 			varying vec2 pos;
 
 			varying vec2 vTextureCoord;
+			
+			vec2 one = vec2(1.0, 0.0);
+			vec2 i = vec2(0.0, 1.0);
+			float pi = 4.0 * atan(1.0); 
 
 			vec2 cMultiply(in vec2 a, in vec2 b) {
 				return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 			}
 
 			vec2 cDivide(in vec2 a, in vec2 b) {
-			float automorphy = b.x * b.x + b.y * b.y;
+				float automorphy = b.x * b.x + b.y * b.y;
 				return vec2((a.x * b.x + a.y * b.y) / automorphy, (a.y * b.x - a.x * b.y) / automorphy);
 			}
 
+			vec2 cLog(in vec2 z) {
+				return vec2(log(length(z)), atan(z.y, z.x));
+			}
+
+		//	pos = (4.0 / pi) * cAtanh(pos);
+			vec2 cAtanh(in vec2 z) {
+				return 0.5 * cLog(cDivide(one + z, one - z));
+			}
+			
+			vec2 cSin(in vec2 z) {
+				return 0.5 * cMultiply(i, exp(cMultiply(i, z)) - exp(cMultiply(-1.0 * i, z)));
+			}
+
+			// Band from http://bulatov.org/math/1107/index_talk_web.html
+			vec2 cStripMap(in vec2 z, in float t) {
+				if (t == 0.0) { return z; }
+			
+				float c = 1.0 - log(t);
+				vec2 cVec2 = vec2(c, 0);
+				float scale = 1.0 / cLog(cDivide(cVec2 + i, cVec2 - i)).y;
+				return scale * cLog(cDivide(cVec2 + z, cVec2 - z));
+			//	return c * (2.0 / pi) * cLog(cDivide(c + z, c - z));
+			}
+			
+			vec2 cHalfPlaneMap(in vec2 z, in float t) {
+				z = cDivide(
+					cMultiply(i, z) + one,
+					cMultiply(one, z) + i
+				);
+				return z + i;
+			}
+			
 			void main(void) {
-			pos.x = aVertexPosition.x;
-			pos.y = aVertexPosition.y;
-
-			pos = cDivide(
-				cMultiply(uMobiusA, pos) + uMobiusB,
-				cMultiply(uMobiusC, pos) + uMobiusD
-			);
-
-			gl_Position =  vec4(pos, 0.0, 1.0);
+				pos = aVertexPosition.xy;
+	
+				pos = cDivide(
+					cMultiply(uMobiusA, pos) + uMobiusB,
+					cMultiply(uMobiusC, pos) + uMobiusD
+				);
+	
+				pos = cStripMap(pos, uInterp);
+				//pos = cHalfPlaneMap(pos, 0.5);
+	
+				gl_Position =  vec4(pos, 0.0, 1.0);
 				vTextureCoord = aTextureCoord;
 			}
     </script>
@@ -61,9 +102,9 @@
 			uniform float uIsInverted;
 
 			void main(void) {
+//				gl_FragColor = vec4(1.0, 1.0, 1.0, 1);
 				gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t) - uTextureOffset);
 				if (uIsInverted != 0.0) {
-	//				gl_FragColor = vec4(1.0 - gl_FragColor.x, 1.0 - gl_FragColor.y, 1.0 - gl_FragColor.z, 1);
 					gl_FragColor = vec4(
 						(1.0 - gl_FragColor.x) * uIsInverted + gl_FragColor.x * (1.0 - uIsInverted), 
 						(1.0 - gl_FragColor.y) * uIsInverted + gl_FragColor.y * (1.0 - uIsInverted), 
@@ -72,6 +113,7 @@
 				}
 			}
     </script>
+    
     <script id="shader-basic-vertex" type="x-shader/x-vertex">
 			attribute vec3 aVertexPosition;
 
@@ -79,27 +121,56 @@
 			gl_Position = vec4(aVertexPosition, 1.0);
 			}
     </script>
+    
     <script id="shader-circlegradient-fragment" type="x-shader/x-fragment">
 			precision mediump float;
 
 			uniform vec4 uColor0, uColor1;
 			uniform float uR0, uR1, uSize;
+			
+			vec2 one = vec2(1.0, 0.0);
+			vec2 i = vec2(0.0, 1.0);
+			float pi = 4.0 * atan(1.0); 
+
+			vec2 cMultiply(in vec2 a, in vec2 b) {
+				return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+			}
+
+			vec2 cDivide(in vec2 a, in vec2 b) {
+				float automorphy = b.x * b.x + b.y * b.y;
+				return vec2((a.x * b.x + a.y * b.y) / automorphy, (a.y * b.x - a.x * b.y) / automorphy);
+			}
+
+			vec2 cLog(in vec2 z) {
+				return vec2(log(length(z)), atan(z.y, z.x));
+			}
+
+			vec2 cExp(in vec2 z) {
+				float ex = exp(z.x);
+				return vec2(ex * cos(z.y), ex * sin(z.y));
+			}
 
 			void main(void) {
-			float x = gl_FragCoord.x / uSize * 2.0 - 1.0;
-			float y = gl_FragCoord.y / uSize * 2.0 - 1.0;
-			float radiusSquared = x * x + y * y;
-			float r0Squared = uR0 * uR0;
-			float r1Squared = uR1 * uR1;
-
-			if (r0Squared > radiusSquared || radiusSquared > r1Squared) {
-			gl_FragColor = vec4(0, 0, 0, 0);
-			} else {
-			float ratio = (radiusSquared - r0Squared) / (r1Squared - r0Squared);
-			gl_FragColor = mix(uColor0, uColor1, ratio);
-			}
+				vec2 z = gl_FragCoord.xy / uSize * 2.0 - 1.0;
+				
+				float c = 1.1;
+				vec2 cVec2 = vec2(c, 0);
+				float scale = 1.0 / cLog(cDivide(cVec2 + i, cVec2 - i)).y;
+				vec2 ex = cExp(z / scale);
+				
+				float radiusSquared = z.x * z.x + z.y * z.y;
+				float r0Squared = uR0 * uR0;
+				float r1Squared = uR1 * uR1;
+	
+				if (r0Squared > radiusSquared || radiusSquared > r1Squared) {
+					gl_FragColor = vec4(0, 0, 0, 0);
+				} else {
+					float ratio = (radiusSquared - r0Squared) / (r1Squared - r0Squared);
+					gl_FragColor = mix(uColor0, uColor1, ratio);
+				}
 			}
     </script>
+    
     <script type="text/javascript">
        // 	var doc;
 
@@ -167,6 +238,10 @@
             new FloatAnimator("angleIncrement", 1, -motionIncrement.modulus() * 2);
         }
 
+        function conformalMap(event) {
+            new FloatAnimator("isConformalMapping", 1, doc.isConformalMappingCheckbox.checked ? 1 : 0);
+        }
+
         function output(text) {
             doc.output.innerHTML = text;
         }
@@ -200,7 +275,7 @@
             this.controlsPanelMinimizeCanvas = document.getElementById("controlsPanelMinimizeCanvas");
             this.controlsPanelMinimizeCanvas.onclick = handleMinimizeControlsButtonClick;
             this.controlsPanelMinimizeSize = this.controlsPanelMinimize.clientWidth;
-            this.areControlsMinimized = true;
+            this.areControlsMinimized = false;
 
             this.controlsBody = document.getElementById("controlsBody");
 
@@ -226,6 +301,8 @@
             this.limitRotationLeft.onclick = limitRotationLeft;
             this.limitRotationRight = document.getElementById("limitRotationRight");
             this.limitRotationRight.onclick = limitRotationRight;
+            this.isConformalMappingCheckbox = document.getElementById("isConformalMapping");
+            this.isConformalMappingCheckbox.onclick = conformalMap;
         };
 
     </script>
@@ -274,10 +351,17 @@
             <hr />
             <label>
                 <input type='checkbox' id='isInverting' />
-                invert</label>
+                invert
+            </label>
             <label>
-                <input type='checkbox' id='isHorizon' checked="true" />
-                horizon</label>
+                <input type='checkbox' id='isHorizon' checked="checked" />
+                horizon
+            </label>
+            <label>
+                <input type='checkbox' id='isConformalMapping' />
+                conformal map
+            </label>
+
             limit rotation:
             <input type='button' id='limitRotationLeft' value="left" />
             <input type='button' id='limitRotationRight' value="right" />
@@ -288,7 +372,7 @@
                 <p>
                     Poincar&eacute; Kaleidoscope
                     <br />
-                    &copy; 2012 Blake Courter
+                    &copy; 2013 Blake Courter
                     <br />
                     <a href="https://github.com/bcourter/Poincare-WebGL" target='_blank'>http://github.com/bcourter/...</a>
                 </p>

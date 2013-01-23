@@ -10,6 +10,7 @@ var motionMobius = Mobius.identity;
 var angleIncrement = 0;
 var isInverting = 0;
 var isHorizon = 1;
+var isConformalMapping = 0;
 
 var startTime = new Date().getTime();
 var lastTime;
@@ -101,6 +102,7 @@ function initShaders() {
     mobiusShaderProgram.mobiusB = gl.getUniformLocation(mobiusShaderProgram, "uMobiusB");
     mobiusShaderProgram.mobiusC = gl.getUniformLocation(mobiusShaderProgram, "uMobiusC");
     mobiusShaderProgram.mobiusD = gl.getUniformLocation(mobiusShaderProgram, "uMobiusD");
+    mobiusShaderProgram.interp = gl.getUniformLocation(mobiusShaderProgram, "uInterp");
 
     // For circle gradient
     var basicVertexShader = getShader(gl, "shader-basic-vertex");
@@ -151,7 +153,7 @@ function drawScene() {
     gl.enable(gl.BLEND);
     gl.disable(gl.DEPTH_TEST);
 
-    disc.draw(motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram, isInverting);
+    disc.draw(motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram, isInverting, isConformalMapping);
 }
 
 function animate() {

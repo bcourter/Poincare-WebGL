@@ -136,7 +136,7 @@ Disc.prototype.initTextures = function () {
 
 
 
-Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram, isInverting) {
+Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram, isInverting, isConformalMapping) {
     if (backgroundColor !== null && isHorizon > 0)
         this.drawCircleGradient(colorAlpha(backgroundColor, isHorizon), colorAlpha(backgroundColor, isHorizon), 0, 1, circleGradientShaderProgram);
 
@@ -147,6 +147,10 @@ Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram
     gl.uniform2fv(mobiusShaderProgram.mobiusC, motionMobius.c.data);
     gl.uniform2fv(mobiusShaderProgram.mobiusD, motionMobius.d.data);
 
+    gl.uniform1f(mobiusShaderProgram.interp, isConformalMapping);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
     for (var i = 0; i < this.faces.length; i++) {
         this.faces[i].draw(motionMobius, textureOffset, texture, mobiusShaderProgram, isInverting);
     }

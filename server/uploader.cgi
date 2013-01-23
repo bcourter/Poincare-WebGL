@@ -8,7 +8,7 @@
     use Digest::MD5;
     use Image::Magick;
 
-    my $uploaddir = '/home/ubuntu/github/Poincare-WebGL/images';
+    my $uploaddir = '../images';
 
     my $maxFileSize = 5 * 1024 * 1024; # 1/2mb max file size...
 
