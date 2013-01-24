@@ -16,6 +16,7 @@
     <script type="text/javascript" src="graphics.js"></script>
     <script type="text/javascript" src="events.js"></script>
     <script type="text/javascript" src="extensions.js"></script>
+    
     <script id="shader-mobius-vertex" type="x-shader/x-vertex">
 			attribute vec3 aVertexPosition;
 			attribute vec2 aTextureCoord;
@@ -26,14 +27,13 @@
 			uniform vec2 uMobiusD;
 			
 			uniform float uInterp;
-//float uInterp = 0.5;
 
 			varying vec2 pos;
-
 			varying vec2 vTextureCoord;
 			
 			vec2 one = vec2(1.0, 0.0);
 			vec2 i = vec2(0.0, 1.0);
+			vec2 zero = vec2(0.0, 0.0);
 			float pi = 4.0 * atan(1.0); 
 
 			vec2 cMultiply(in vec2 a, in vec2 b) {
@@ -49,9 +49,9 @@
 				return vec2(log(length(z)), atan(z.y, z.x));
 			}
 
-		//	pos = (4.0 / pi) * cAtanh(pos);
+			// For perfect band, use: pos = (4.0 / pi) * cAtanh(pos);
 			vec2 cAtanh(in vec2 z) {
-				return 0.5 * cLog(cDivide(one + z, one - z));
+				return 0.5 * (cLog(one + z) - cLog(one - z));
 			}
 			
 			vec2 cSin(in vec2 z) {
@@ -60,13 +60,37 @@
 
 			// Band from http://bulatov.org/math/1107/index_talk_web.html
 			vec2 cStripMap(in vec2 z, in float t) {
-				if (t == 0.0) { return z; }
+				if (t == 0.0) 
+					return z; 
 			
 				float c = 1.0 - log(t);
 				vec2 cVec2 = vec2(c, 0);
-				float scale = 1.0 / cLog(cDivide(cVec2 + i, cVec2 - i)).y;
-				return scale * cLog(cDivide(cVec2 + z, cVec2 - z));
-			//	return c * (2.0 / pi) * cLog(cDivide(c + z, c - z));
+				float scale = 1.0 / (cLog(cVec2 + i) - cLog(cVec2 - i)).y;
+
+			//	vec2 cuts[4] = vec2[](one, i, -1.0 * one, -1.0 * i);
+				const int cutCount = 4;
+				vec2 cuts[cutCount];
+				cuts[0] = i;
+				cuts[1] = -i;
+				cuts[2] = one;
+				cuts[3] = -one;
+				
+				vec2 result = zero;
+				for (int index = 0; index < cutCount; index++) {
+					float sign = index >= 2 ? 1.0 : -1.0;
+					result -= sign * cMultiply(cuts[index], cLog(cVec2 - cMultiply(cuts[index], z)));
+				}
+				
+		//		vec2 a = i;
+		//		vec2 b = -i;
+		//		return 0.25 * (
+		//			cMultiply(a, cLog(cVec2 - cMultiply(a, z))) 
+		//			+ cMultiply(b, cLog(cVec2 - cMultiply(b, z))) 
+		//			- cLog(cVec2 - z)
+		//		);
+
+				return 0.5 * scale * result;
+			// original	return scale * (cLog(cVec2 + z) - cLog(cVec2 - z));
 			}
 			
 			vec2 cHalfPlaneMap(in vec2 z, in float t) {
@@ -92,11 +116,11 @@
 				vTextureCoord = aTextureCoord;
 			}
     </script>
+    
     <script id="shader-mobius-fragment" type="x-shader/x-fragment">
 			precision mediump float;
 
 			varying vec2 vTextureCoord;
-
 			uniform sampler2D uSampler;
 			uniform vec2 uTextureOffset;
 			uniform float uIsInverted;
@@ -114,65 +138,25 @@
 			}
     </script>
     
-    <script id="shader-basic-vertex" type="x-shader/x-vertex">
-			attribute vec3 aVertexPosition;
-
-			void main(void) {
-			gl_Position = vec4(aVertexPosition, 1.0);
-			}
-    </script>
-    
-    <script id="shader-circlegradient-fragment" type="x-shader/x-fragment">
+    <script id="shader-basic-fragment" type="x-shader/x-fragment">
 			precision mediump float;
-
-			uniform vec4 uColor0, uColor1;
-			uniform float uR0, uR1, uSize;
 			
-			vec2 one = vec2(1.0, 0.0);
-			vec2 i = vec2(0.0, 1.0);
-			float pi = 4.0 * atan(1.0); 
-
-			vec2 cMultiply(in vec2 a, in vec2 b) {
-				return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
-			}
-
-			vec2 cDivide(in vec2 a, in vec2 b) {
-				float automorphy = b.x * b.x + b.y * b.y;
-				return vec2((a.x * b.x + a.y * b.y) / automorphy, (a.y * b.x - a.x * b.y) / automorphy);
-			}
-
-			vec2 cLog(in vec2 z) {
-				return vec2(log(length(z)), atan(z.y, z.x));
-			}
-
-			vec2 cExp(in vec2 z) {
-				float ex = exp(z.x);
-				return vec2(ex * cos(z.y), ex * sin(z.y));
-			}
+			varying vec2 vTextureCoord;
 
 			void main(void) {
-				vec2 z = gl_FragCoord.xy / uSize * 2.0 - 1.0;
-				
-				float c = 1.1;
-				vec2 cVec2 = vec2(c, 0);
-				float scale = 1.0 / cLog(cDivide(cVec2 + i, cVec2 - i)).y;
-				vec2 ex = cExp(z / scale);
-				
-				float radiusSquared = z.x * z.x + z.y * z.y;
-				float r0Squared = uR0 * uR0;
-				float r1Squared = uR1 * uR1;
-	
-				if (r0Squared > radiusSquared || radiusSquared > r1Squared) {
-					gl_FragColor = vec4(0, 0, 0, 0);
-				} else {
-					float ratio = (radiusSquared - r0Squared) / (r1Squared - r0Squared);
-					gl_FragColor = mix(uColor0, uColor1, ratio);
-				}
+				gl_FragColor = vec4(1.0, 0.0, 0.0, 0.0);
 			}
     </script>
     
     <script type="text/javascript">
-       // 	var doc;
+    	var tau = Math.PI * 2;
+    	
+    // Animatable parameters
+		var motionMobius = Mobius.identity;
+		var angleIncrement = 0;
+		var isInverting = 0;
+		var isHorizon = 0;
+		var isConformalMapping = 0;
 
         function drawMinimizeControlsButton() {
             var ctx = doc.controlsPanelMinimizeCanvas.getContext("2d");

@@ -13,8 +13,64 @@ function Disc(region, bitmapURL, circleLimit, maxRegions) {
     this.drawCount = 1;
     this.totalDraw = 0;
 
-    this.initFaces();
     this.initTextures();
+    this.initShaders();
+    this.initFaces();
+}
+
+Disc.prototype.initShaders = function () {
+// Disc
+    var mobiusVertexShader = getShader(gl, "shader-mobius-vertex");
+    var mobiusFragmentShader = getShader(gl, "shader-mobius-fragment");
+
+    this.mobiusShaderProgram = gl.createProgram();
+    gl.attachShader(this.mobiusShaderProgram, mobiusVertexShader);
+    gl.attachShader(this.mobiusShaderProgram, mobiusFragmentShader);
+    gl.linkProgram(this.mobiusShaderProgram);
+
+    if (!gl.getProgramParameter(this.mobiusShaderProgram, gl.LINK_STATUS)) {
+        output("Could not initialise shaders");
+    }
+
+    this.mobiusShaderProgram.vertexPositionAttribute = gl.getAttribLocation(this.mobiusShaderProgram, "aVertexPosition");
+    gl.enableVertexAttribArray(this.mobiusShaderProgram.vertexPositionAttribute);
+
+    this.mobiusShaderProgram.textureCoordAttribute = gl.getAttribLocation(this.mobiusShaderProgram, "aTextureCoord");
+    gl.enableVertexAttribArray(this.mobiusShaderProgram.textureCoordAttribute);
+
+    this.mobiusShaderProgram.mobiusA = gl.getUniformLocation(this.mobiusShaderProgram, "uMobiusA");
+    this.mobiusShaderProgram.mobiusB = gl.getUniformLocation(this.mobiusShaderProgram, "uMobiusB");
+    this.mobiusShaderProgram.mobiusC = gl.getUniformLocation(this.mobiusShaderProgram, "uMobiusC");
+    this.mobiusShaderProgram.mobiusD = gl.getUniformLocation(this.mobiusShaderProgram, "uMobiusD");
+    this.mobiusShaderProgram.interp = gl.getUniformLocation(this.mobiusShaderProgram, "uInterp");
+
+    this.mobiusShaderProgram.samplerUniform = gl.getUniformLocation(this.mobiusShaderProgram, "uSampler");
+    this.mobiusShaderProgram.textureOffset = gl.getUniformLocation(this.mobiusShaderProgram, "uTextureOffset");
+    this.mobiusShaderProgram.isInverted = gl.getUniformLocation(this.mobiusShaderProgram, "uIsInverted");
+
+// Gradient bands and background circle
+    var mobiusVertexShader = getShader(gl, "shader-mobius-vertex");
+    var basicFragmentShader = getShader(gl, "shader-basic-fragment");
+
+    this.circleGradientShaderProgram = gl.createProgram();
+    gl.attachShader(this.circleGradientShaderProgram, mobiusVertexShader);
+    gl.attachShader(this.circleGradientShaderProgram, basicFragmentShader);
+    gl.linkProgram(this.circleGradientShaderProgram);
+
+    if (!gl.getProgramParameter(this.circleGradientShaderProgram, gl.LINK_STATUS)) {
+        output("Could not initialise shaders");
+    }
+
+    this.circleGradientShaderProgram.vertexPositionAttribute = gl.getAttribLocation(this.circleGradientShaderProgram, "aVertexPosition");
+    gl.enableVertexAttribArray(this.circleGradientShaderProgram.vertexPositionAttribute);
+    
+    this.circleGradientShaderProgram.mobiusA = gl.getUniformLocation(this.circleGradientShaderProgram, "uMobiusA");
+    this.circleGradientShaderProgram.mobiusB = gl.getUniformLocation(this.circleGradientShaderProgram, "uMobiusB");
+    this.circleGradientShaderProgram.mobiusC = gl.getUniformLocation(this.circleGradientShaderProgram, "uMobiusC");
+    this.circleGradientShaderProgram.mobiusD = gl.getUniformLocation(this.circleGradientShaderProgram, "uMobiusD");
+    this.circleGradientShaderProgram.interp = gl.getUniformLocation(this.circleGradientShaderProgram, "uInterp");
+
+    this.circleGradientShaderProgram.canvas = doc.canvas;
 }
 
 Disc.prototype.initFaces = function () {
@@ -36,7 +92,6 @@ Disc.prototype.initFaces = function () {
             var c = edge.Circline;
             if (c.constructor != Circle)
                 continue;
-
 
             //       if (face.edgeCenters[i].magnitudeSquared > 0.9) 
             //          continue;
@@ -136,23 +191,23 @@ Disc.prototype.initTextures = function () {
 
 
 
-Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram, isInverting, isConformalMapping) {
+Disc.prototype.draw = function (motionMobius, textureOffset, isInverting, isConformalMapping) {
     if (backgroundColor !== null && isHorizon > 0)
-        this.drawCircleGradient(colorAlpha(backgroundColor, isHorizon), colorAlpha(backgroundColor, isHorizon), 0, 1, circleGradientShaderProgram);
+       this.drawCircleGradient(colorAlpha(backgroundColor, isHorizon), colorAlpha(backgroundColor, isHorizon), 0, 1, this.circleGradientShaderProgram);
 
-    gl.useProgram(mobiusShaderProgram);
-    gl.uniform2fv(mobiusShaderProgram.textureOffset, textureOffset.data);
-    gl.uniform2fv(mobiusShaderProgram.mobiusA, motionMobius.a.data);
-    gl.uniform2fv(mobiusShaderProgram.mobiusB, motionMobius.b.data);
-    gl.uniform2fv(mobiusShaderProgram.mobiusC, motionMobius.c.data);
-    gl.uniform2fv(mobiusShaderProgram.mobiusD, motionMobius.d.data);
+    gl.useProgram(this.mobiusShaderProgram);
+    gl.uniform2fv(this.mobiusShaderProgram.textureOffset, textureOffset.data);
+    gl.uniform2fv(this.mobiusShaderProgram.mobiusA, motionMobius.a.data);
+    gl.uniform2fv(this.mobiusShaderProgram.mobiusB, motionMobius.b.data);
+    gl.uniform2fv(this.mobiusShaderProgram.mobiusC, motionMobius.c.data);
+    gl.uniform2fv(this.mobiusShaderProgram.mobiusD, motionMobius.d.data);
 
-    gl.uniform1f(mobiusShaderProgram.interp, isConformalMapping);
+    gl.uniform1f(this.mobiusShaderProgram.interp, isConformalMapping);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     for (var i = 0; i < this.faces.length; i++) {
-        this.faces[i].draw(motionMobius, textureOffset, texture, mobiusShaderProgram, isInverting);
+        this.faces[i].draw(motionMobius, textureOffset, texture, this.mobiusShaderProgram, isInverting);
     }
 
     if (isHorizon > 0) {
@@ -162,13 +217,13 @@ Disc.prototype.draw = function (motionMobius, textureOffset, mobiusShaderProgram
         //    var gradientInside = 0.04;
         // var gradientMiddle = 0.01;
         if (backgroundColor !== null) {
-            this.drawCircleGradient(colorAlpha(backgroundColor, 0 * isHorizon), colorAlpha(backgroundColor, 1 * isHorizon), 1.0 - gradientInside, 1 - gradientMiddle, circleGradientShaderProgram);
-            this.drawCircleGradient(colorAlpha(backgroundColor, 1 * isHorizon), colorAlpha(backgroundColor, 1 * isHorizon), 1.0 - gradientMiddle, 1.0, circleGradientShaderProgram);
+            this.drawCircleGradient(colorAlpha(backgroundColor, 0 * isHorizon), colorAlpha(backgroundColor, 1 * isHorizon), 1.0 - gradientInside, 1 - gradientMiddle, this.circleGradientShaderProgram);
+            this.drawCircleGradient(colorAlpha(backgroundColor, 1 * isHorizon), colorAlpha(backgroundColor, 1 * isHorizon), 1.0 - gradientMiddle, 1.0, this.circleGradientShaderProgram);
         }
 
         var thickness = 0.005;
-        this.drawCircleGradient([1, 1, 1, 0 * isHorizon], [1, 1, 1, 1 * isHorizon], 1 - 3 / 4 * thickness, 1 - thickness / 4, circleGradientShaderProgram);
-        this.drawCircleGradient([1, 1, 1, 1 * isHorizon], [0, 0, 0, 1 /*      */ ], 1 - thickness / 4, 1 + thickness / 4, circleGradientShaderProgram); //TBD doesn't transparency antialias?
+        this.drawCircleGradient([1, 1, 1, 0 * isHorizon], [1, 1, 1, 1 * isHorizon], 1 - 3 / 4 * thickness, 1 - thickness / 4, this.circleGradientShaderProgram);
+        this.drawCircleGradient([1, 1, 1, 1 * isHorizon], [0, 0, 0, 1 /*      */ ], 1 - thickness / 4, 1 + thickness / 4, this.circleGradientShaderProgram); //TBD doesn't transparency antialias?
     }
 };
 
@@ -176,28 +231,44 @@ function colorAlpha(color, alpha) {
     return [color[0], color[1], color[2], alpha];
 }
 
-Disc.prototype.drawCircleGradient = function (color0, color1, r0, r1, circleGradientShaderProgram) {
-    gl.useProgram(circleGradientShaderProgram);
-    gl.uniform4fv(circleGradientShaderProgram.color0, color0);
-    gl.uniform4fv(circleGradientShaderProgram.color1, color1);
-    gl.uniform1f(circleGradientShaderProgram.r0, r0);
-    gl.uniform1f(circleGradientShaderProgram.r1, r1);
-    gl.uniform1f(circleGradientShaderProgram.size, circleGradientShaderProgram.canvas.width);
+Disc.prototype.drawCircleGradient = function (color0, color1, r0, r1) {
+    gl.useProgram(this.circleGradientShaderProgram);
 
-    var squareVertexPositionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-    vertices = [
-             1.0, 1.0, 0,
-            -1.0, 1.0, 0,
-             1.0, -1.0, 0,
-            -1.0, -1.0, 0
-        ];
+    gl.uniform2fv(this.circleGradientShaderProgram.mobiusA, Mobius.identity.a.data);
+    gl.uniform2fv(this.circleGradientShaderProgram.mobiusB, Mobius.identity.b.data);
+    gl.uniform2fv(this.circleGradientShaderProgram.mobiusC, Mobius.identity.c.data);
+    gl.uniform2fv(this.circleGradientShaderProgram.mobiusD, Mobius.identity.d.data);
+    gl.uniform1f(this.mobiusShaderProgram.interp, isConformalMapping);
+
+    var count = 180;
+
+    var vertices = [];
+    var colors = [];
+    for (var i = 0; i <= p; i++) {
+    	var t = tau / count * i;
+    	vertices[i].push([r0 * Math.cos(t), r0 * Math.sin(t)]);
+    	vertices[i].push([r1 * Math.cos(t), r1 * Math.sin(t)]);
+    	
+     	colors[i].push(color0);
+    	colors[i].push(color1);
+    }
+
+    var vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    squareVertexPositionBuffer.itemSize = 3;
-    squareVertexPositionBuffer.numItems = 4;
+    vertexBuffer.itemSize = 2;
+    vertexBuffer.numItems = vertices.length;
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.vertexAttribPointer(this.circleGradientShaderProgram.vertexPositionAttribute, vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-    gl.vertexAttribPointer(circleGradientShaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	var colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+	colorBuffer.itemSize = 4;
+	colorBuffer.numItems = textureCoords.length;
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.vertexAttribPointer(this.circleGradientShaderProgram.colorAttribute, colorBuffer.itemSize, gl.UNSIGNED_BYTE, false, 0, 0);
 
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexBuffer.numItems);
 };
+

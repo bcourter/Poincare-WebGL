@@ -1,16 +1,10 @@
 var gl;
 
-var mobiusShaderProgram;
-var circleGradientShaderProgram;
+
 
 var disc;
 var textureOffset = Complex.zero;
 var motionIncrement = Complex.zero;
-var motionMobius = Mobius.identity;
-var angleIncrement = 0;
-var isInverting = 0;
-var isHorizon = 0;
-var isConformalMapping = 0;
 
 var startTime = new Date().getTime();
 var lastTime;
@@ -76,60 +70,6 @@ function getShader(gl, id) {
     return shader;
 }
 
-function initShaders() {
-    var mobiusVertexShader = getShader(gl, "shader-mobius-vertex");
-    var mobiusFragmentShader = getShader(gl, "shader-mobius-fragment");
-
-    mobiusShaderProgram = gl.createProgram();
-    gl.attachShader(mobiusShaderProgram, mobiusVertexShader);
-    gl.attachShader(mobiusShaderProgram, mobiusFragmentShader);
-    gl.linkProgram(mobiusShaderProgram);
-
-    if (!gl.getProgramParameter(mobiusShaderProgram, gl.LINK_STATUS)) {
-        output("Could not initialise shaders");
-    }
-
-    mobiusShaderProgram.vertexPositionAttribute = gl.getAttribLocation(mobiusShaderProgram, "aVertexPosition");
-    gl.enableVertexAttribArray(mobiusShaderProgram.vertexPositionAttribute);
-
-    mobiusShaderProgram.textureCoordAttribute = gl.getAttribLocation(mobiusShaderProgram, "aTextureCoord");
-    gl.enableVertexAttribArray(mobiusShaderProgram.textureCoordAttribute);
-
-    mobiusShaderProgram.samplerUniform = gl.getUniformLocation(mobiusShaderProgram, "uSampler");
-    mobiusShaderProgram.textureOffset = gl.getUniformLocation(mobiusShaderProgram, "uTextureOffset");
-    mobiusShaderProgram.isInverted = gl.getUniformLocation(mobiusShaderProgram, "uIsInverted");
-    mobiusShaderProgram.mobiusA = gl.getUniformLocation(mobiusShaderProgram, "uMobiusA");
-    mobiusShaderProgram.mobiusB = gl.getUniformLocation(mobiusShaderProgram, "uMobiusB");
-    mobiusShaderProgram.mobiusC = gl.getUniformLocation(mobiusShaderProgram, "uMobiusC");
-    mobiusShaderProgram.mobiusD = gl.getUniformLocation(mobiusShaderProgram, "uMobiusD");
-    mobiusShaderProgram.interp = gl.getUniformLocation(mobiusShaderProgram, "uInterp");
-
-    // For circle gradient
-    var basicVertexShader = getShader(gl, "shader-basic-vertex");
-    var circleGradientVertexShader = getShader(gl, "shader-circlegradient-fragment");
-
-    circleGradientShaderProgram = gl.createProgram();
-    gl.attachShader(circleGradientShaderProgram, basicVertexShader);
-    gl.attachShader(circleGradientShaderProgram, circleGradientVertexShader);
-    gl.linkProgram(circleGradientShaderProgram);
-
-    if (!gl.getProgramParameter(circleGradientShaderProgram, gl.LINK_STATUS)) {
-        output("Could not initialise CircleGradientShaderProgram");
-    }
-
-    circleGradientShaderProgram.vertexPositionAttribute = gl.getAttribLocation(circleGradientShaderProgram, "aVertexPosition");
-    gl.enableVertexAttribArray(circleGradientShaderProgram.vertexPositionAttribute);
-
-    circleGradientShaderProgram.color0 = gl.getUniformLocation(circleGradientShaderProgram, "uColor0");
-    circleGradientShaderProgram.color1 = gl.getUniformLocation(circleGradientShaderProgram, "uColor1");
-    circleGradientShaderProgram.r0 = gl.getUniformLocation(circleGradientShaderProgram, "uR0");
-    circleGradientShaderProgram.r1 = gl.getUniformLocation(circleGradientShaderProgram, "uR1");
-    circleGradientShaderProgram.size = gl.getUniformLocation(circleGradientShaderProgram, "uSize");
-
-    circleGradientShaderProgram.canvas = doc.canvas;
-}
-
-
 function initDisc() {
     var file = userImage;
     if (file == "") 
@@ -153,7 +93,7 @@ function drawScene() {
     gl.enable(gl.BLEND);
     gl.disable(gl.DEPTH_TEST);
 
-    disc.draw(motionMobius, textureOffset, mobiusShaderProgram, circleGradientShaderProgram, isInverting, isConformalMapping);
+    disc.draw(motionMobius, textureOffset, isInverting, isConformalMapping);
 }
 
 function animate() {
@@ -243,7 +183,6 @@ function webGLStart() {
     });
 
     initGL(doc.canvas);
-    initShaders();
 
     var startTime = new Date().getTime();
     initDisc();

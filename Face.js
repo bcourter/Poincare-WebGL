@@ -56,7 +56,7 @@ Face.create = function (region) {
     var p = region.p;
     var isFlipped = false;
 
-    var increment = Mobius.createRotation(2 * Math.PI / p);
+    var increment = Mobius.createRotation(tau / p);
     var midvertex = region.p1;
 
     var mesh = region.points;
