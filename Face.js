@@ -228,7 +228,7 @@ Face.prototype.initBuffers = function (previous) {
 	        n * size + edgeCentersI
 	    ]);
 
-            cubeVertexIndices.push([
+        cubeVertexIndices.push([
 	        n * size + spinesI[2],
 	        n * size + spinesI[1],
 	        n * size + interiorsI[0],
@@ -246,15 +246,15 @@ Face.prototype.initBuffers = function (previous) {
 	        n * size + halfEdgesI[1]
 	    ]);
 
-            cubeVertexIndices.push([
+        cubeVertexIndices.push([
 	        n * size + spinesI[0],
 	        n * size + verticesI,
 	        n * size + halfEdgesI[2]
 	    ]);
 
-            var nn = (n + p - 1) % p;
+        var nn = (n + p - 1) % p;
 
-            cubeVertexIndices.push([
+        cubeVertexIndices.push([
 	        centerI,
 	        nn * size + spinesI[2],
 	        n * size + dualEdgesI[0],
@@ -266,7 +266,7 @@ Face.prototype.initBuffers = function (previous) {
 	        n * size + edgeCentersI
 	    ]);
 
-            cubeVertexIndices.push([
+        cubeVertexIndices.push([
 	        nn * size + spinesI[2],
 	        nn * size + spinesI[1],
 	        n * size + interiorsI[3],
@@ -276,7 +276,7 @@ Face.prototype.initBuffers = function (previous) {
 	        n * size + halfEdgesI[3]
 	    ]);
 
-            cubeVertexIndices.push([
+        cubeVertexIndices.push([
 	        nn * size + spinesI[1],
 	        nn * size + spinesI[0],
 	        n * size + interiorsI[5],
@@ -284,7 +284,7 @@ Face.prototype.initBuffers = function (previous) {
 	        n * size + halfEdgesI[4]
 	    ]);
 
-            cubeVertexIndices.push([
+        cubeVertexIndices.push([
 	        nn * size + spinesI[0],
 	        nn * size + verticesI,
 	        n * size + halfEdgesI[5]

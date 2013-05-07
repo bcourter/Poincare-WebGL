@@ -8,7 +8,7 @@ var motionIncrement = Complex.zero;
 
 var startTime = new Date().getTime();
 var lastTime;
-var initTime;
+var initTime = null;
 var lastTickTime;
 
 var maxVertexTextureImageUnits;
